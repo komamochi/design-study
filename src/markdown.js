@@ -38,9 +38,11 @@ export const MD = (() => {
     const sections = [{ head: '', body: [] }];
     let para = [], list = null, quote = [];
     const out = () => sections[sections.length - 1].body;
-    const flushPara = () => { if (para.length) { out().push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } };
-    const flushList = () => { if (list) { out().push(`<${list.type}>${list.items.map(i => `<li>${i.map(inline).join('<br>')}</li>`).join('')}</${list.type}>`); list = null; } };
-    const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${quote.map(inline).join('<br>')}</blockquote>`); quote = []; } };
+    // 複数行をまとめて整形（行をまたぐ **太字** も効くように）
+    const lines2 = arr => inline(arr.join('\n')).replace(/\n/g, '<br>');
+    const flushPara = () => { if (para.length) { out().push(`<p>${lines2(para)}</p>`); para = []; } };
+    const flushList = () => { if (list) { out().push(`<${list.type}>${list.items.map(i => `<li>${lines2(i)}</li>`).join('')}</${list.type}>`); list = null; } };
+    const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${lines2(quote)}</blockquote>`); quote = []; } };
     const flushAll = () => { flushPara(); flushList(); flushQuote(); };
     let firstH1 = !inner;
     let callout = null;   // ::: 〜 ::: の中身をためる
