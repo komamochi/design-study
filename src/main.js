@@ -194,7 +194,7 @@ import { MD } from './markdown.js';
     const cur = getContent(chid);
     md.innerHTML = `
       <h3>教材を${cur ? '編集' : '貼り付け'}<small>${esc(title)}</small></h3>
-      <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。見出し（#）・太字（**）・箇条書き（-）・画像・Loom/YouTube/Vimeo の動画URLを自動で整形します。内容はあなたのアカウントに保存され、PCとスマホで同じものが見られます。</p>
+      <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。</p>
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
         <select class="field" data-m="color" aria-label="枠の色">
