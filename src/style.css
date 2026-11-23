@@ -560,3 +560,4 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 /* 入れ子の箇条書き */
 .prose.md li > ul, .prose.md li > ol { margin: 8px 0 4px; }
 .prose.md ol > li { margin-bottom: 12px; }
+.prose.md ul ul, .prose.md ol ul { list-style-type: disc; }
