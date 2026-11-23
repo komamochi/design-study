@@ -552,3 +552,7 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .bm-thumb { flex: none; width: 34%; max-width: 240px; background: var(--surface-2); }
 .prose.md .bm-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; display: block; }
 @media (max-width: 520px) { .bm-body { padding: 12px 14px; } .bm-thumb { width: 36%; } .prose.md .bm-title { font-size: 14px; } .bm-desc { display: none; } }
+
+/* 文章の中に入った写真（リンク付き画像など）も、上下に余白をとる */
+.prose.md p > img, .prose.md p > a > img { display: block; margin: 28px 0; }
+.prose.md p:has(> img, > a > img) { margin: 0; }
