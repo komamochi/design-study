@@ -535,3 +535,6 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md .callout li { margin-bottom: 4px; }
 .prose.md .callout ul, .prose.md .callout ol { margin-bottom: 10px; }
 .prose.md .callout-icon { line-height: 1.75; }
+
+/* 教材のテキストは太さ500（見出し・太字はそのまま太く） */
+.prose.md { font-weight: 500; }
