@@ -483,3 +483,4 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md h4 { font-size: 17px; }
 .prose.md h3 { font-size: 18px; }
 .prose.md h2 { font-size: 23px; }
+.prose.md figcaption, .prose.md .video-link { font-size: 14px; }
