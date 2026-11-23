@@ -44,17 +44,27 @@ export const MD = (() => {
     // 箇条書き：入れ子（字下げ）に対応。list はいちばん外側、stack は今いる階層
     let stack = [], listGap = false;
     const listHtml = l => `<${l.type}${l.type === 'ol' && l.start > 1 ? ` start="${l.start}"` : ''}>${l.items.map(i => `<li>${lines2(i.lines)}${i.subs.map(listHtml).join('')}</li>`).join('')}</${l.type}>`;
-    const flushList = () => { if (list) { out().push(listHtml(list)); list = null; stack = []; listGap = false; } };
+    let lastOl = null;  // 直前の番号付きリスト（写真などをはさんでも番号を続けるため）
+    const flushList = () => {
+      if (!list) return;
+      out().push(listHtml(list));
+      if (list.type === 'ol') lastOl = { sec: sections.length, idx: out().length, count: list.start - 1 + list.items.length };
+      list = null; stack = []; listGap = false;
+    };
+    // 前の番号付きリストとのあいだが、写真・動画・余白・文章だけなら番号を続ける
+    const continueFrom = () => lastOl && lastOl.sec === sections.length &&
+      out().slice(lastOl.idx).every(h => /^<(figure|p>|div class="(md-space|video-embed)|a class="(video-link|bookmark))/.test(h)) ? lastOl.count + 1 : 1;
     const addItem = (indent, type, num, text) => {
       const top = () => stack[stack.length - 1];
       while (stack.length > 1 && (indent < top().indent || (indent === top().indent && type !== top().type))) stack.pop();
       const cur = top();
       const newList = () => ({ type, indent, start: num || 1, items: [] });
-      if (!cur) { list = newList(); stack = [list]; }
+      const newRoot = () => { list = newList(); if (type === 'ol' && num <= 1) list.start = continueFrom(); stack = [list]; };
+      if (!cur) newRoot();
       else if (cur.items.length && (indent > cur.indent || (type === 'ul' && cur.type === 'ol' && indent === cur.indent))) {
         // 字下げされた項目、または番号付きの直後の「・」は、その下の入れ子にする
         const child = newList(); cur.items[cur.items.length - 1].subs.push(child); stack.push(child);
-      } else if (type !== cur.type) { flushList(); list = newList(); stack = [list]; }
+      } else if (type !== cur.type) { flushList(); newRoot(); }
       top().items.push({ lines: [text], subs: [] });
       listGap = false;
     };
