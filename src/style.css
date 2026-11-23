@@ -487,3 +487,22 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 
 /* 教材のテキストは英数字も含めて Noto Sans JP */
 .prose.md, .prose.md :is(h2, h3, h4, p, li, blockquote, strong, em, a, figcaption, .video-link) { font-family: 'Noto Sans JP', system-ui, sans-serif; }
+
+/* 枠（コールアウト） */
+.prose.md .callout { display: flex; gap: 10px; padding: 18px 22px; border-radius: var(--radius); margin: 0 0 18px; background: var(--c-bg); }
+.prose.md .callout-icon { flex: none; font-size: 18px; line-height: 1.9; }
+.prose.md .callout-body { flex: 1; min-width: 0; }
+.prose.md .callout-body > :last-child { margin-bottom: 0; }
+.prose.md .callout ul, .prose.md .callout ol { margin-bottom: 12px; }
+.callout.c-green  { --c-bg: #E5F0D6; }
+.callout.c-yellow { --c-bg: #FBF1CF; }
+.callout.c-blue   { --c-bg: #E1ECF6; }
+.callout.c-red    { --c-bg: #F8E1DC; }
+.callout.c-gray   { --c-bg: #EEECEA; }
+.callout.c-beige  { --c-bg: #F4EAE0; }
+
+/* 編集画面の補助ボタン */
+.modal-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.modal-tools .btn { padding: 5px 12px; font-size: 13px; }
+.modal-tools select.field { padding: 5px 34px 5px 10px; font-size: 13px; background-position: right 10px center; }
+.modal-tools small { color: var(--muted); font-size: 12px; }

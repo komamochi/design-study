@@ -26,7 +26,10 @@ export const MD = (() => {
   }
 
   // ブロック単位に分解して HTML 化。h2 ごとにセクションを分ける
-  function render(md, title = '') {
+  // 枠（コールアウト）の色
+  const CALLOUT_COLORS = ['green', 'yellow', 'blue', 'red', 'gray', 'beige'];
+
+  function render(md, title = '', inner = false) {
     const lines = String(md).replace(/\r\n?/g, '\n').split('\n');
     const sections = [{ head: '', body: [] }];
     let para = [], list = null, quote = [];
@@ -35,19 +38,37 @@ export const MD = (() => {
     const flushList = () => { if (list) { out().push(`<${list.type}>${list.items.map(i => `<li>${i.map(inline).join('<br>')}</li>`).join('')}</${list.type}>`); list = null; } };
     const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${quote.map(inline).join('<br>')}</blockquote>`); quote = []; } };
     const flushAll = () => { flushPara(); flushList(); flushQuote(); };
-    let firstH1 = true;
+    let firstH1 = !inner;
+    let callout = null;   // ::: 〜 ::: の中身をためる
 
     for (const raw of lines) {
       const line = raw.replace(/\s+$/, '');
       const t = line.trim();
       let m;
+      // 枠（コールアウト）： ::: で始めて ::: で閉じる。1行目に絵文字や色を書ける（例 :::💡 yellow）
+      if (callout) {
+        if (t === ':::') {
+          flushAll();
+          out().push(`<div class="callout c-${callout.color}">${callout.icon ? `<span class="callout-icon">${esc(callout.icon)}</span>` : ''}<div class="callout-body">${render(callout.lines.join('\n'), '', true)}</div></div>`);
+          callout = null;
+        } else callout.lines.push(raw);
+        continue;
+      }
+      if ((m = t.match(/^:::\s*(.*)$/))) {
+        flushAll();
+        const words = m[1].split(/\s+/).filter(Boolean);
+        const color = words.find(w => CALLOUT_COLORS.includes(w.toLowerCase()))?.toLowerCase() || 'green';
+        const icon = words.filter(w => !CALLOUT_COLORS.includes(w.toLowerCase())).join(' ');
+        callout = { color, icon, lines: [] };
+        continue;
+      }
       if (!t) { flushAll(); continue; }
       if ((m = t.match(/^(#{1,6})\s+(.*)$/))) {
         flushAll();
         const lv = m[1].length, text = m[2].replace(/^\*\*(.*)\*\*$/, '$1');
         if (lv === 1) { if (firstH1 && (!title || title.replace(/\s/g, '') === text.replace(/\s/g, ''))) { firstH1 = false; continue; } firstH1 = false; }
-        if (lv <= 2) sections.push({ head: inline(text), body: [] });
-        else out().push(`<h${Math.min(lv, 4)}>${inline(text)}</h${Math.min(lv, 4)}>`);
+        if (lv <= 2 && !inner) sections.push({ head: inline(text), body: [] });
+        else { const hl = inner ? Math.max(3, Math.min(lv, 4)) : Math.min(lv, 4); out().push(`<h${hl}>${inline(text)}</h${hl}>`); }
         continue;
       }
       if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) { flushAll(); out().push('<hr>'); continue; }
@@ -71,6 +92,9 @@ export const MD = (() => {
       para.push(t);
     }
     flushAll();
+    // 閉じ忘れた枠は最後まで枠にする
+    if (callout) { lines.length = 0; const c = callout; callout = null; out().push(`<div class="callout c-${c.color}">${c.icon ? `<span class="callout-icon">${esc(c.icon)}</span>` : ''}<div class="callout-body">${render(c.lines.join('\n'), '', true)}</div></div>`); }
+    if (inner) return sections.map(s => s.body.join('')).join('');
 
     return sections
       .filter(s => s.head || s.body.length)

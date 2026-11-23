@@ -194,7 +194,14 @@ import { MD } from './markdown.js';
     const cur = getContent(chid);
     md.innerHTML = `
       <h3>教材を${cur ? '編集' : '貼り付け'}<small>${esc(title)}</small></h3>
-      <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。見出し（#）・太字（**）・箇条書き（-）・Loom/YouTube/Vimeo の動画URLを自動で整形します。内容はあなたのアカウントに保存され、PCとスマホで同じものが見られます。</p>
+      <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。見出し（#）・太字（**）・箇条書き（-）・画像・Loom/YouTube/Vimeo の動画URLを自動で整形します。内容はあなたのアカウントに保存され、PCとスマホで同じものが見られます。</p>
+      <div class="modal-tools">
+        <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
+        <select class="field" data-m="color" aria-label="枠の色">
+          <option value="">緑</option><option value="yellow">黄</option><option value="blue">青</option><option value="red">赤</option><option value="gray">グレー</option><option value="beige">ベージュ</option>
+        </select>
+        <small>前後を「:::」の行ではさんだ部分が枠になります</small>
+      </div>
       <textarea class="field" rows="16" placeholder="# タイトル&#10;&#10;## 見出し&#10;本文…">${esc(cur)}</textarea>
       <div class="modal-actions">
         ${cur ? '<button class="btn" data-m="del" style="color:var(--danger);margin-right:auto">内容を削除</button>' : ''}
@@ -204,6 +211,19 @@ import { MD } from './markdown.js';
     const close = () => { bg.remove(); md.remove(); };
     bg.onclick = close;
     md.querySelector('[data-m="cancel"]').onclick = close;
+    // 選んだ範囲の前後に ::: を入れて枠にする
+    md.querySelector('[data-m="callout"]').onclick = () => {
+      const ta = md.querySelector('textarea');
+      let a = ta.selectionStart, b = ta.selectionEnd, v = ta.value;
+      if (a === b) { toast('枠にしたい部分を選んでください'); ta.focus(); return; }
+      a = v.lastIndexOf('\n', a - 1) + 1;                 // 行のはじめから
+      const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e; // 行のおわりまで
+      const color = md.querySelector('[data-m="color"]').value;
+      const head = `:::💡${color ? ' ' + color : ''}`;
+      const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
+      ta.value = v.slice(0, a) + wrapped + v.slice(b);
+      ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
+    };
     md.querySelector('[data-m="save"]').onclick = async e => {
       const v = md.querySelector('textarea').value.trim();
       e.target.disabled = true; e.target.textContent = '保存中…';
