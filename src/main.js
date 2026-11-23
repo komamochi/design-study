@@ -198,7 +198,7 @@ import { MD } from './markdown.js';
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
         <select class="field" data-m="color" aria-label="枠の色">
-          <option value="">緑</option><option value="yellow">黄</option><option value="blue">青</option><option value="red">赤</option><option value="gray">グレー</option><option value="beige">ベージュ</option>
+          <option value="">キャラメル</option><option value="gray">グレージュ</option><option value="white">白（枠線あり）</option>
         </select>
         <small>前後を「:::」の行ではさんだ部分が枠になります</small>
       </div>

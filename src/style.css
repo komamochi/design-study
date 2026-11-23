@@ -494,12 +494,10 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md .callout-body { flex: 1; min-width: 0; }
 .prose.md .callout-body > :last-child { margin-bottom: 0; }
 .prose.md .callout ul, .prose.md .callout ol { margin-bottom: 12px; }
-.callout.c-green  { --c-bg: #E5F0D6; }
-.callout.c-yellow { --c-bg: #FBF1CF; }
-.callout.c-blue   { --c-bg: #E1ECF6; }
-.callout.c-red    { --c-bg: #F8E1DC; }
-.callout.c-gray   { --c-bg: #EEECEA; }
-.callout.c-beige  { --c-bg: #F4EAE0; }
+/* アプリの色に合わせた枠：既定はキャラメルを薄くした色 */
+.callout.c-caramel, .callout.c-green, .callout.c-yellow, .callout.c-beige, .callout.c-red { --c-bg: #F6EADF; }
+.callout.c-gray, .callout.c-blue { --c-bg: #EFEBE8; }
+.callout.c-white { --c-bg: #FFFFFF; border: 1px solid var(--line); }
 
 /* 編集画面の補助ボタン */
 .modal-tools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }

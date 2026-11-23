@@ -27,7 +27,7 @@ export const MD = (() => {
 
   // ブロック単位に分解して HTML 化。h2 ごとにセクションを分ける
   // 枠（コールアウト）の色
-  const CALLOUT_COLORS = ['green', 'yellow', 'blue', 'red', 'gray', 'beige'];
+  const CALLOUT_COLORS = ['caramel', 'gray', 'white', 'green', 'yellow', 'blue', 'red', 'beige'];
 
   function render(md, title = '', inner = false) {
     const lines = String(md).replace(/\r\n?/g, '\n').split('\n');
@@ -57,7 +57,7 @@ export const MD = (() => {
       if ((m = t.match(/^:::\s*(.*)$/))) {
         flushAll();
         const words = m[1].split(/\s+/).filter(Boolean);
-        const color = words.find(w => CALLOUT_COLORS.includes(w.toLowerCase()))?.toLowerCase() || 'green';
+        const color = words.find(w => CALLOUT_COLORS.includes(w.toLowerCase()))?.toLowerCase() || 'caramel';
         const icon = words.filter(w => !CALLOUT_COLORS.includes(w.toLowerCase())).join(' ');
         callout = { color, icon, lines: [] };
         continue;
