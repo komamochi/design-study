@@ -41,7 +41,23 @@ export const MD = (() => {
     // 複数行をまとめて整形（行をまたぐ **太字** も効くように）
     const lines2 = arr => inline(arr.join('\n')).replace(/\n/g, '<br>');
     const flushPara = () => { if (para.length) { out().push(`<p>${lines2(para)}</p>`); para = []; } };
-    const flushList = () => { if (list) { out().push(`<${list.type}>${list.items.map(i => `<li>${lines2(i)}</li>`).join('')}</${list.type}>`); list = null; } };
+    // 箇条書き：入れ子（字下げ）に対応。list はいちばん外側、stack は今いる階層
+    let stack = [], listGap = false;
+    const listHtml = l => `<${l.type}${l.type === 'ol' && l.start > 1 ? ` start="${l.start}"` : ''}>${l.items.map(i => `<li>${lines2(i.lines)}${i.subs.map(listHtml).join('')}</li>`).join('')}</${l.type}>`;
+    const flushList = () => { if (list) { out().push(listHtml(list)); list = null; stack = []; listGap = false; } };
+    const addItem = (indent, type, num, text) => {
+      const top = () => stack[stack.length - 1];
+      while (stack.length > 1 && (indent < top().indent || (indent === top().indent && type !== top().type))) stack.pop();
+      const cur = top();
+      const newList = () => ({ type, indent, start: num || 1, items: [] });
+      if (!cur) { list = newList(); stack = [list]; }
+      else if (cur.items.length && (indent > cur.indent || (type === 'ul' && cur.type === 'ol' && indent === cur.indent))) {
+        // 字下げされた項目、または番号付きの直後の「・」は、その下の入れ子にする
+        const child = newList(); cur.items[cur.items.length - 1].subs.push(child); stack.push(child);
+      } else if (type !== cur.type) { flushList(); list = newList(); stack = [list]; }
+      top().items.push({ lines: [text], subs: [] });
+      listGap = false;
+    };
     const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${lines2(quote)}</blockquote>`); quote = []; } };
     const flushAll = () => { flushPara(); flushList(); flushQuote(); };
     let firstH1 = !inner;
@@ -61,9 +77,11 @@ export const MD = (() => {
         } else callout.lines.push(raw);
         continue;
       }
-      if (!t) { flushAll(); blanks++; continue; }
+      if (!t) { flushPara(); flushQuote(); if (list) listGap = true; blanks++; continue; }
+      // 空行のあとに箇条書きでも字下げでもない行が来たら、箇条書きはそこで終わり
+      if (list && listGap && !/^\s+\S/.test(line) && !/^\s*([-*+]|\d+[.)])\s+/.test(line)) flushList();
       // 空行を2行以上続けたら、1行ふえるごとに余白を足す
-      if (blanks >= 2 && out().length) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
+      if (blanks >= 2 && out().length && !list) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
       blanks = 0;
       // [[チャプターID]] だけの行は、そのチャプターへのカードリンク
       if ((m = t.match(/^\[\[([\w-]+)\]\]$/)) && linkRenderer) {
@@ -110,15 +128,14 @@ export const MD = (() => {
         continue;
       }
       if ((m = t.match(/^>\s?(.*)$/))) { flushPara(); flushList(); quote.push(m[1]); continue; }
-      if ((m = line.match(/^\s*([-*+]|\d+[.)])\s+(.*)$/))) {
+      if ((m = line.match(/^(\s*)([-*+]|\d+)[.)]?\s+(.*)$/)) && (/^[-*+]$/.test(m[2]) || /^\s*\d+[.)]\s/.test(line))) {
         flushPara(); flushQuote();
-        const type = /\d/.test(m[1]) ? 'ol' : 'ul';
-        if (!list || list.type !== type) { flushList(); list = { type, items: [] }; }
-        list.items.push([m[2]]);
+        const isOl = /\d/.test(m[2]);
+        addItem(m[1].replace(/\t/g, '    ').length, isOl ? 'ol' : 'ul', isOl ? +m[2] : 0, m[3]);
         continue;
       }
       // 箇条書きの直後に続く行は、その項目の続き（改行）として扱う
-      if (list) { list.items[list.items.length - 1].push(t); continue; }
+      if (list) { const it = stack[stack.length - 1].items; it[it.length - 1].lines.push(t); listGap = false; continue; }
       if (quote.length) { quote.push(t); continue; }
       para.push(t);
     }

@@ -556,3 +556,7 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 /* 文章の中に入った写真（リンク付き画像など）も、上下に余白をとる */
 .prose.md p > img, .prose.md p > a > img { display: block; margin: 28px 0; }
 .prose.md p:has(> img, > a > img) { margin: 0; }
+
+/* 入れ子の箇条書き */
+.prose.md li > ul, .prose.md li > ol { margin: 8px 0 4px; }
+.prose.md ol > li { margin-bottom: 12px; }
