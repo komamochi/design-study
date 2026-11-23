@@ -535,3 +535,20 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md .callout li { margin-bottom: 4px; }
 .prose.md .callout ul, .prose.md .callout ol { margin-bottom: 10px; }
 .prose.md .callout-icon { line-height: 1.75; }
+
+/* 写真の上下の余白 */
+.prose.md figure { margin: 28px 0; }
+
+/* 記事のリンクカード（URLだけの行） */
+.prose.md a.bookmark { display: flex; margin: 8px 0 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; text-decoration: none; color: var(--ink); transition: background-color .2s; }
+.prose.md a.bookmark:hover { background: #F7F4F2; }
+.bm-body { flex: 1; min-width: 0; display: grid; gap: 6px; align-content: center; padding: 16px 20px; }
+.prose.md .bm-title { font-size: 16px; font-weight: 700; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bm-desc { font-size: 13px; color: var(--muted); line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bm-desc:empty { display: none; }
+.bm-site { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); min-width: 0; }
+.bm-site span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prose.md .bm-icon { width: 16px; height: 16px; border: 0; border-radius: 2px; flex: none; }
+.bm-thumb { flex: none; width: 34%; max-width: 240px; background: var(--surface-2); }
+.prose.md .bm-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 0; display: block; }
+@media (max-width: 520px) { .bm-body { padding: 12px 14px; } .bm-thumb { width: 36%; } .prose.md .bm-title { font-size: 14px; } .bm-desc { display: none; } }

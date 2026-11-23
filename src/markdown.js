@@ -92,6 +92,14 @@ export const MD = (() => {
         out().push(`<div class="video-embed"><iframe src="${esc(videoEmbed(t))}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" loading="lazy"></iframe></div><a class="video-link" href="${esc(t)}" target="_blank" rel="noopener">動画を別タブで開く ↗</a>`);
         continue;
       }
+      // URL だけの行（または [文字](URL) だけの行）は記事のリンクカードにする
+      if ((m = t.match(/^(https?:\/\/\S+)$/) || t.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/))) {
+        const url = m[2] || m[1], label = m[2] ? m[1] : '';
+        let host = ''; try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
+        flushAll();
+        out().push(`<a class="bookmark" data-ogp="${esc(url)}" href="${esc(url)}" target="_blank" rel="noopener"><div class="bm-body"><b class="bm-title">${esc(label && label !== url ? label : host || url)}</b><span class="bm-desc"></span><span class="bm-site"><img class="bm-icon" alt="" hidden><span>${esc(host)}</span></span></div><div class="bm-thumb" hidden></div></a>`);
+        continue;
+      }
       if ((m = t.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/))) {
         flushAll();
         // 「image」「画像」やファイル名だけの説明文は出さない

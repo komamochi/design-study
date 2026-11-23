@@ -282,6 +282,31 @@ import { MD } from './markdown.js';
     app.innerHTML = html;
     document.title = `${$('h1', app)?.firstChild?.textContent.trim() || 'DESIGN STUDY'}｜DESIGN STUDY`;
     bind(p0, p1, p2);
+    fillBookmarks();
+  }
+
+  // 記事リンクカードに、タイトル・説明・画像を入れる
+  const OGP = {};
+  function fillBookmarks() {
+    app.querySelectorAll('a.bookmark[data-ogp]').forEach(async a => {
+      const url = a.dataset.ogp;
+      try {
+        OGP[url] ??= fetch(`/api/ogp?url=${encodeURIComponent(url)}`).then(r => r.ok ? r.json() : null);
+        const d = await OGP[url];
+        if (!d) return;
+        if (d.title) a.querySelector('.bm-title').textContent = d.title;
+        if (d.description) a.querySelector('.bm-desc').textContent = d.description;
+        if (d.site) a.querySelector('.bm-site span').textContent = d.site;
+        const ic = a.querySelector('.bm-icon');
+        if (d.icon) { ic.src = d.icon; ic.onload = () => ic.hidden = false; }
+        if (d.image) {
+          const th = a.querySelector('.bm-thumb');
+          const img = new Image();
+          img.alt = ''; img.loading = 'lazy'; img.src = d.image;
+          img.onload = () => { th.append(img); th.hidden = false; a.classList.add('has-thumb'); };
+        }
+      } catch {}
+    });
   }
 
   function bind(p0, p1, p2) {
