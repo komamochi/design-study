@@ -143,8 +143,8 @@ import { MD } from './markdown.js';
     return `
       <div class="chapter-bar">
         <a class="back" href="#/courses/${c.id}">‹ ${esc(c.title)}</a>
-        <span class="count">${n}</span>
-        <button class="btn" data-act="toc">☰ 目次</button>
+        <span class="count only-narrow">${n}</span>
+        <button class="btn only-narrow" data-act="toc">☰ 目次</button>
       </div>
       <div class="detail">
         <article>
@@ -170,7 +170,12 @@ import { MD } from './markdown.js';
             ${next ? `<a class="next" href="#/courses/${c.id}/${next.id}"><small>次のチャプター ›</small>${esc(next.title)}</a>` : ''}
           </div>
         </article>
-        <aside class="side-box card">
+        <aside class="side-box">
+          <div class="side-nav only-wide">
+            <span class="count">${n}</span>
+            <button class="btn" data-act="toc">☰ 目次</button>
+          </div>
+          <div class="card">
           <div class="card-title">学習ステータス</div>
           <select class="status-select" data-act="status">
             <option value="none" ${s === 'none' ? 'selected' : ''}>未開始</option>
@@ -178,6 +183,7 @@ import { MD } from './markdown.js';
             <option value="done" ${s === 'done' ? 'selected' : ''}>完了</option>
           </select>
           <div style="margin-top:16px">${progress(c)}</div>
+          </div>
         </aside>
       </div>`;
   }
@@ -249,7 +255,7 @@ import { MD } from './markdown.js';
         if (v === 'doing') state.doing[p2] = true;
         save(); render();
       };
-      $('[data-act="toc"]', app).onclick = () => tocDrawer(p1, p2);
+      app.querySelectorAll('[data-act="toc"]').forEach(b => b.onclick = () => tocDrawer(p1, p2));
       app.querySelectorAll('[data-act="edit"]').forEach(b => b.onclick = () => contentEditor(p2, $('h1', app)?.textContent || ''));
       $('[data-act="status"]', app).onchange = e => setStatus(e.target.value);
       const dn = $('[data-act="done"]', app); if (dn) dn.onclick = () => { setStatus('done'); toast('完了にしました🐾'); };
