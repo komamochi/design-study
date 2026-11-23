@@ -27,5 +27,10 @@ export const COURSES = [
   { id: 'studio', title: 'Studio講座', en: 'Studio', dark: true, label: 'Studioマスター講座', start: '2025/10/05', chapters: genChapters('S', 46) },
   { id: 'ai', title: 'AI活用講座', en: 'AI Workshop', start: '2026/04/13', chapters: genChapters('AI', 4) },
   { id: 'webinar', title: 'ウェビナーアーカイブ', en: 'Webinar Archive', start: '2026/07/29', chapters: genChapters('WB', 57) },
-  { id: 'docs', title: 'お役立ち資料', en: 'Resources', start: '2025/12/04', chapters: genChapters('D', 4) },
+  { id: 'docs', title: 'お役立ち資料', en: 'Resources', start: '2025/12/04', chapters: [
+    'タスク・スケジュール管理術 〜虎の巻〜',
+    '【トヨタ式】無駄をなくす！カイゼンワークショップ',
+    '実績を登録しよう！ 〜作品をポートフォリオにする〜',
+    'AIにVibelyをつなごう！ 〜Claude Code・CodexでのVibely MCP接続ガイド〜',
+  ] },
 ].map(c => ({ ...c, chapters: c.chapters.map((t, i) => ({ id: `${c.id}-${i + 1}`, title: t })) }));

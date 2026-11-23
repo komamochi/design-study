@@ -26,6 +26,10 @@ export const MD = (() => {
   }
 
   // ブロック単位に分解して HTML 化。h2 ごとにセクションを分ける
+  // [[チャプターID]] をカードにする関数（main.js から渡す）
+  let linkRenderer = null;
+  const setLinkRenderer = fn => { linkRenderer = fn; };
+
   // 枠（コールアウト）の色
   const CALLOUT_COLORS = ['caramel', 'gray', 'white', 'green', 'yellow', 'blue', 'red', 'beige'];
 
@@ -59,6 +63,11 @@ export const MD = (() => {
       // 空行を2行以上続けたら、1行ふえるごとに余白を足す
       if (blanks >= 2 && out().length) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
       blanks = 0;
+      // [[チャプターID]] だけの行は、そのチャプターへのカードリンク
+      if ((m = t.match(/^\[\[([\w-]+)\]\]$/)) && linkRenderer) {
+        const card = linkRenderer(m[1]);
+        if (card) { flushAll(); out().push(card); continue; }
+      }
       if ((m = t.match(/^:::\s*(.*)$/))) {
         flushAll();
         const words = m[1].split(/\s+/).filter(Boolean);
@@ -106,5 +115,5 @@ export const MD = (() => {
       .join('');
   }
 
-  return { render };
+  return { render, setLinkRenderer };
 })();

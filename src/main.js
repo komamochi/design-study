@@ -75,7 +75,7 @@ import { MD } from './markdown.js';
   }
   function courseThumb(c) { return `<div class="thumb"><div class="en">${esc(c.en)}</div><span class="ja">${esc(c.title)}</span></div>`; }
   function chapterThumb(ch, cls = '') {
-    const m = ch.title.match(/^(課題\S*|\S+)\s+(.*)$/);
+    const m = ch.title.match(/^(課題\S*|\S*\d\S*)\s+(.*)$/);
     const task = ch.title.startsWith('課題');
     const kind = task ? '課題' : (m ? m[1] : '');
     const name = m ? m[2] : ch.title;
@@ -188,6 +188,17 @@ import { MD } from './markdown.js';
       </div>`;
   }
 
+  // 教材の中の [[チャプターID]] → チャプターのカードリンク
+  const findChapter = id => { for (const c of COURSES) { const ch = c.chapters.find(x => x.id === id); if (ch) return { c, ch }; } return null; };
+  MD.setLinkRenderer(id => {
+    const f = findChapter(id); if (!f) return '';
+    const { c, ch } = f;
+    return `<a class="ch-link" href="#/courses/${c.id}/${ch.id}">
+      <div class="ch-link-thumb">${chapterThumb(ch)}</div>
+      <div class="ch-link-body"><small>${esc(c.title)}</small><b>${esc(ch.title)}</b></div>
+      ${badge(ch)}<span class="chev">›</span></a>`;
+  });
+
   function contentEditor(chid, title) {
     const bg = document.createElement('div'); bg.className = 'drawer-bg';
     const md = document.createElement('div'); md.className = 'modal';
@@ -197,6 +208,10 @@ import { MD } from './markdown.js';
       <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。</p>
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
+        <select class="field" data-m="link" aria-label="チャプターのリンクを入れる">
+          <option value="">🔗 チャプターのリンクを入れる</option>
+          ${COURSES.map(c => `<optgroup label="${esc(c.title)}">${c.chapters.map(ch => `<option value="${ch.id}">${esc(ch.title)}</option>`).join('')}</optgroup>`).join('')}
+        </select>
       </div>
       <textarea class="field" rows="16" placeholder="# タイトル&#10;&#10;## 見出し&#10;本文…">${esc(cur)}</textarea>
       <div class="modal-actions">
@@ -207,6 +222,15 @@ import { MD } from './markdown.js';
     const close = () => { bg.remove(); md.remove(); };
     bg.onclick = close;
     md.querySelector('[data-m="cancel"]').onclick = close;
+    // カーソルの位置（の行のあと）に [[チャプターID]] を1行で入れる
+    md.querySelector('[data-m="link"]').onchange = e => {
+      const id = e.target.value; e.target.value = ''; if (!id) return;
+      const ta = md.querySelector('textarea'), v = ta.value;
+      let p = ta.selectionEnd; const nl = v.indexOf('\n', p); p = nl < 0 ? v.length : nl;
+      const ins = `\n[[${id}]]`;
+      ta.value = v.slice(0, p) + ins + v.slice(p);
+      ta.focus(); ta.setSelectionRange(p + ins.length, p + ins.length);
+    };
     // 選んだ範囲の前後に ::: を入れて枠にする
     md.querySelector('[data-m="callout"]').onclick = () => {
       const ta = md.querySelector('textarea');
