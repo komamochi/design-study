@@ -196,7 +196,7 @@ import { MD } from './markdown.js';
     return `<a class="ch-link" href="#/courses/${c.id}/${ch.id}">
       <div class="ch-link-thumb">${chapterThumb(ch)}</div>
       <div class="ch-link-body"><small>${esc(c.title)}</small><b>${esc(ch.title)}</b></div>
-      ${badge(ch)}<span class="chev">›</span></a>`;
+      <span class="chev">›</span></a>`;
   });
 
   function contentEditor(chid, title) {
