@@ -484,3 +484,6 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md h3 { font-size: 18px; }
 .prose.md h2 { font-size: 23px; }
 .prose.md figcaption, .prose.md .video-link { font-size: 14px; }
+
+/* 教材のテキストは英数字も含めて Noto Sans JP */
+.prose.md, .prose.md :is(h2, h3, h4, p, li, blockquote, strong, em, a, figcaption, .video-link) { font-family: 'Noto Sans JP', system-ui, sans-serif; }
