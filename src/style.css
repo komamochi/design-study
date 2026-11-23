@@ -463,6 +463,5 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 /* hidden を付けた要素は必ず隠す（display 指定より優先） */
 [hidden] { display: none !important; }
 
-/* 教材の見出し：下線・マーカーなし */
-.prose.md h2 { border-bottom: 0; padding-bottom: 0; }
+/* 教材の見出し：太字のマーカー線なし */
 .prose.md :is(h2, h3, h4) strong { background: none; }
