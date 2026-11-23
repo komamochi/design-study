@@ -1,17 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><clipPath id="head"><ellipse cx="32" cy="37" rx="21" ry="18"/></clipPath></defs>
+  <defs>
+    <linearGradient id="lid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#DEDBDA"/>
+      <stop offset="1" stop-color="#B7B2B1"/>
+    </linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#CFCBCA"/>
+      <stop offset="1" stop-color="#A29D9C"/>
+    </linearGradient>
+  </defs>
   <rect width="64" height="64" rx="14" fill="#EAE4E1"/>
-  <!-- 耳（先を丸く） -->
-  <path d="M13.5 32 C13 24 14 15 16.5 11.5 C17.6 10 19 10.3 20.3 11.3 C24 14.2 27.5 17.5 30 21 Z" fill="#FFFFFF"/>
-  <path d="M34 21 C36.5 17.5 40 14.2 43.7 11.3 C45 10.3 46.4 10 47.5 11.5 C50 15 51 24 50.5 32 Z" fill="#8F8078"/>
-  <!-- 顔 -->
-  <ellipse cx="32" cy="37" rx="21" ry="18" fill="#FFFFFF"/>
-  <!-- 頭のぶち（顔の形で切り抜く） -->
-  <ellipse cx="45" cy="24" rx="15" ry="11" fill="#8F8078" clip-path="url(#head)"/>
-  <!-- 目と鼻 -->
-  <ellipse cx="24.5" cy="38.5" rx="2.4" ry="2.9" fill="#3A3637"/>
-  <ellipse cx="39.5" cy="38.5" rx="2.4" ry="2.9" fill="#3A3637"/>
-  <ellipse cx="32" cy="43" rx="2" ry="1.4" fill="#3A3637"/>
-  <!-- ひげ -->
-  <path d="M8.5 39.5h6M9.5 43.5h5M49.5 39.5h6M49.5 43.5h5" stroke="#8F8078" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- 本体（キーボード側） -->
+  <path d="M8 46.5 L49 44.5 C51 44.4 52.2 45 53 46.2 L55.5 49.5 C56 50.3 55.5 51 54.6 51 L11 52.2 C9.7 52.2 8.8 51.6 8.4 50.6 Z" fill="url(#base)"/>
+  <path d="M8.4 50.6 C8.8 51.6 9.7 52.2 11 52.2 L54.6 51 C55.3 51 55.7 50.6 55.6 50 L55.6 51.2 C55.6 52 55 52.6 54.2 52.6 L11 53.8 C9.6 53.8 8.6 53 8.3 51.8 Z" fill="#8E8988"/>
+  <!-- ふた（後ろから見たところ） -->
+  <g transform="translate(0 2.5) rotate(-5 30 29)">
+    <rect x="11" y="12" width="38" height="32" rx="3.2" fill="url(#lid)"/>
+    <rect x="11" y="12" width="38" height="32" rx="3.2" fill="none" stroke="#9C9796" stroke-width=".8"/>
+    <!-- 猫のマーク -->
+    <g fill="#FFFFFF" opacity=".95">
+      <path d="M23.6 26.6 L24.4 20.6 L28.2 23.6 Z"/>
+      <path d="M31.8 23.6 L35.6 20.6 L36.4 26.6 Z"/>
+      <ellipse cx="30" cy="28.6" rx="7" ry="6"/>
+    </g>
+  </g>
 </svg>
