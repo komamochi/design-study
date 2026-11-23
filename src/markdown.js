@@ -1,0 +1,82 @@
+// 貼り付けた教材（Markdown 形式）を、見出しごとのカードに整形して表示する
+export const MD = (() => {
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const safeUrl = u => /^(https?:)?\/\//i.test(u) || /^data:image\//i.test(u) ? u : '#';
+
+  // 動画URL → 埋め込み用URL（対応していなければ null）
+  function videoEmbed(url) {
+    let m;
+    if ((m = url.match(/loom\.com\/(?:share|embed)\/([a-f0-9]+)/i))) return `https://www.loom.com/embed/${m[1]}`;
+    if ((m = url.match(/(?:youtube\.com\/watch\?[^ ]*v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{6,})/i))) return `https://www.youtube.com/embed/${m[1]}`;
+    if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i))) return `https://player.vimeo.com/video/${m[1]}`;
+    return null;
+  }
+
+  // 行内：太字・斜体・コード・リンク・URL自動リンク
+  function inline(text) {
+    const codes = [];
+    let s = esc(text).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, u) => `<img src="${esc(safeUrl(u))}" alt="${alt}" loading="lazy">`);
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`);
+    s = s.replace(/(^|[\s（(「])(https?:\/\/[^\s<）)」]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+    s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+?)__/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<em>$2</em>');
+    s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
+    return s;
+  }
+
+  // ブロック単位に分解して HTML 化。h2 ごとにセクションを分ける
+  function render(md, title = '') {
+    const lines = String(md).replace(/\r\n?/g, '\n').split('\n');
+    const sections = [{ head: '', body: [] }];
+    let para = [], list = null, quote = [];
+    const out = () => sections[sections.length - 1].body;
+    const flushPara = () => { if (para.length) { out().push(`<p>${para.map(inline).join('<br>')}</p>`); para = []; } };
+    const flushList = () => { if (list) { out().push(`<${list.type}>${list.items.map(i => `<li>${i.map(inline).join('<br>')}</li>`).join('')}</${list.type}>`); list = null; } };
+    const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${quote.map(inline).join('<br>')}</blockquote>`); quote = []; } };
+    const flushAll = () => { flushPara(); flushList(); flushQuote(); };
+    let firstH1 = true;
+
+    for (const raw of lines) {
+      const line = raw.replace(/\s+$/, '');
+      const t = line.trim();
+      let m;
+      if (!t) { flushAll(); continue; }
+      if ((m = t.match(/^(#{1,6})\s+(.*)$/))) {
+        flushAll();
+        const lv = m[1].length, text = m[2].replace(/^\*\*(.*)\*\*$/, '$1');
+        if (lv === 1) { if (firstH1 && (!title || title.replace(/\s/g, '') === text.replace(/\s/g, ''))) { firstH1 = false; continue; } firstH1 = false; }
+        if (lv <= 2) sections.push({ head: inline(text), body: [] });
+        else out().push(`<h${Math.min(lv, 4)}>${inline(text)}</h${Math.min(lv, 4)}>`);
+        continue;
+      }
+      if (/^(-{3,}|\*{3,}|_{3,})$/.test(t)) { flushAll(); out().push('<hr>'); continue; }
+      if (/^https?:\/\/\S+$/.test(t) && videoEmbed(t)) {
+        flushAll();
+        out().push(`<div class="video-embed"><iframe src="${esc(videoEmbed(t))}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" loading="lazy"></iframe></div><a class="video-link" href="${esc(t)}" target="_blank" rel="noopener">動画を別タブで開く ↗</a>`);
+        continue;
+      }
+      if ((m = t.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/))) { flushAll(); out().push(`<figure><img src="${esc(safeUrl(m[2]))}" alt="${esc(m[1])}" loading="lazy">${m[1] ? `<figcaption>${esc(m[1])}</figcaption>` : ''}</figure>`); continue; }
+      if ((m = t.match(/^>\s?(.*)$/))) { flushPara(); flushList(); quote.push(m[1]); continue; }
+      if ((m = line.match(/^\s*([-*+]|\d+[.)])\s+(.*)$/))) {
+        flushPara(); flushQuote();
+        const type = /\d/.test(m[1]) ? 'ol' : 'ul';
+        if (!list || list.type !== type) { flushList(); list = { type, items: [] }; }
+        list.items.push([m[2]]);
+        continue;
+      }
+      // 箇条書きの直後に続く行は、その項目の続き（改行）として扱う
+      if (list) { list.items[list.items.length - 1].push(t); continue; }
+      if (quote.length) { quote.push(t); continue; }
+      para.push(t);
+    }
+    flushAll();
+
+    return sections
+      .filter(s => s.head || s.body.length)
+      .map(s => `<section class="card prose md">${s.head ? `<h2>${s.head}</h2>` : ''}${s.body.join('')}</section>`)
+      .join('');
+  }
+
+  return { render };
+})();
