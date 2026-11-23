@@ -197,10 +197,6 @@ import { MD } from './markdown.js';
       <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。</p>
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
-        <select class="field" data-m="color" aria-label="枠の色">
-          <option value="">キャラメル</option><option value="gray">グレージュ</option><option value="white">白（枠線あり）</option>
-        </select>
-        <small>前後を「:::」の行ではさんだ部分が枠になります</small>
       </div>
       <textarea class="field" rows="16" placeholder="# タイトル&#10;&#10;## 見出し&#10;本文…">${esc(cur)}</textarea>
       <div class="modal-actions">
@@ -218,8 +214,7 @@ import { MD } from './markdown.js';
       if (a === b) { toast('枠にしたい部分を選んでください'); ta.focus(); return; }
       a = v.lastIndexOf('\n', a - 1) + 1;                 // 行のはじめから
       const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e; // 行のおわりまで
-      const color = md.querySelector('[data-m="color"]').value;
-      const head = `:::💡${color ? ' ' + color : ''}`;
+      const head = ':::💡';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
       ta.value = v.slice(0, a) + wrapped + v.slice(b);
       ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
