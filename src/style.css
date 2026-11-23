@@ -504,3 +504,11 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .modal-tools .btn { padding: 5px 12px; font-size: 13px; }
 .modal-tools select.field { padding: 5px 34px 5px 10px; font-size: 13px; background-position: right 10px center; }
 .modal-tools small { color: var(--muted); font-size: 12px; }
+
+/* 教材の余白：小見出しの上を広めに、空行2行以上で余白 */
+.prose.md h3 { margin-top: 40px; }
+.prose.md h4 { margin-top: 32px; }
+.prose.md .callout-body h3 { margin-top: 16px; }
+.prose.md h2 + h3, .prose.md .md-space + h3 { margin-top: 8px; }
+.prose.md .callout { margin-bottom: 24px; }
+.prose.md .md-space { display: block; }

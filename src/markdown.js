@@ -40,6 +40,7 @@ export const MD = (() => {
     const flushAll = () => { flushPara(); flushList(); flushQuote(); };
     let firstH1 = !inner;
     let callout = null;   // ::: 〜 ::: の中身をためる
+    let blanks = 0;       // 続いた空行の数（2行以上で余白を足す）
 
     for (const raw of lines) {
       const line = raw.replace(/\s+$/, '');
@@ -54,6 +55,10 @@ export const MD = (() => {
         } else callout.lines.push(raw);
         continue;
       }
+      if (!t) { flushAll(); blanks++; continue; }
+      // 空行を2行以上続けたら、1行ふえるごとに余白を足す
+      if (blanks >= 2 && out().length) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
+      blanks = 0;
       if ((m = t.match(/^:::\s*(.*)$/))) {
         flushAll();
         const words = m[1].split(/\s+/).filter(Boolean);
@@ -62,7 +67,6 @@ export const MD = (() => {
         callout = { color, icon, lines: [] };
         continue;
       }
-      if (!t) { flushAll(); continue; }
       if ((m = t.match(/^(#{1,6})\s+(.*)$/))) {
         flushAll();
         const lv = m[1].length, text = m[2].replace(/^\*\*(.*)\*\*$/, '$1');
