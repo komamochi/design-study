@@ -3,3 +3,5 @@ dist
 .env.local
 .DS_Store
 .claude
+# ローカル試作版（公開しない）
+neko-school
