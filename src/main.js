@@ -235,7 +235,7 @@ import { MD } from './markdown.js';
     else if (p0 === 'courses') { html = pageCourse(p1); nav = 'home'; }
     else html = notFound();
     app.innerHTML = html;
-    document.title = `${$('h1', app)?.firstChild?.textContent.trim() || 'MOFU'}｜MOFU DESIGN SCHOOL`;
+    document.title = `${$('h1', app)?.firstChild?.textContent.trim() || 'DESIGN STUDY'}｜DESIGN STUDY`;
     bind(p0, p1, p2);
   }
 
