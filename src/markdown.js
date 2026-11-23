@@ -92,7 +92,13 @@ export const MD = (() => {
         out().push(`<div class="video-embed"><iframe src="${esc(videoEmbed(t))}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" loading="lazy"></iframe></div><a class="video-link" href="${esc(t)}" target="_blank" rel="noopener">動画を別タブで開く ↗</a>`);
         continue;
       }
-      if ((m = t.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/))) { flushAll(); out().push(`<figure><img src="${esc(safeUrl(m[2]))}" alt="${esc(m[1])}" loading="lazy">${m[1] ? `<figcaption>${esc(m[1])}</figcaption>` : ''}</figure>`); continue; }
+      if ((m = t.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/))) {
+        flushAll();
+        // 「image」「画像」やファイル名だけの説明文は出さない
+        const cap = /^(image|img|画像|写真|photo|picture|スクリーンショット|screenshot)?\s*\d*$|\.(png|jpe?g|gif|webp|svg)$/i.test(m[1].trim()) ? '' : m[1];
+        out().push(`<figure><img src="${esc(safeUrl(m[2]))}" alt="${esc(m[1])}" loading="lazy">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
+        continue;
+      }
       if ((m = t.match(/^>\s?(.*)$/))) { flushPara(); flushList(); quote.push(m[1]); continue; }
       if ((m = line.match(/^\s*([-*+]|\d+[.)])\s+(.*)$/))) {
         flushPara(); flushQuote();
