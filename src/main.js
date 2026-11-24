@@ -166,7 +166,7 @@ import { MD } from './markdown.js';
             <span class="chev">›</span>
           </a>`).join('')}
       </div>
-      <div class="home-foot"><button class="link-btn" data-act="logout">ログアウト</button></div>`;
+      <div class="home-foot"><button class="link-btn" data-act="reset">学習ステータスをリセット</button><button class="link-btn" data-act="logout">ログアウト</button></div>`;
   }
 
   function pageCourse(id) {
@@ -487,6 +487,16 @@ import { MD } from './markdown.js';
     try { await navigator.clipboard.writeText(b.parentElement.querySelector('code').textContent); } catch { return; }
     b.classList.add('done'); toast('コピーしました');
     setTimeout(() => b.classList.remove('done'), 1500);
+  });
+
+  // 完了・学習中をすべて未完了に戻す（教材の中身はそのまま）
+  document.addEventListener('click', e => {
+    if (!e.target.closest('[data-act="reset"]')) return;
+    const n = Object.keys(state.done).length + Object.keys(state.doing || {}).length;
+    if (!n) { toast('リセットするステータスはありません'); return; }
+    if (!confirm(`完了・学習中になっている${n}件のチャプターを、すべて未完了に戻しますか？\n（貼り付けた教材はそのまま残ります）`)) return;
+    state.done = {}; state.doing = {};
+    save(); render(); toast('学習ステータスをリセットしました');
   });
 
   document.addEventListener('click', async e => {

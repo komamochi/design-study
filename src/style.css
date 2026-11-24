@@ -631,3 +631,4 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
 .prose.md td:first-child { white-space: nowrap; }
 @media (max-width: 520px) { .prose.md td:first-child { white-space: normal; } }
+.home-foot { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
