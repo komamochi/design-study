@@ -160,6 +160,12 @@ export const MD = (() => {
       // 空行を2行以上続けたら、1行ふえるごとに余白を足す
       if (blanks >= 2 && out().length && !list) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
       blanks = 0;
+      // [[pdf:保存場所|ファイル名]] だけの行は、PDF をページの中で表示する
+      if ((m = t.match(/^\[\[pdf:([^|\]]+)(?:\|([^\]]*))?\]\]$/))) {
+        flushAll();
+        out().push(`<div class="pdf-embed" data-pdf="${esc(m[1])}"><iframe title="${esc(m[2] || 'PDF')}" loading="lazy"></iframe></div><a class="video-link pdf-link" data-pdf="${esc(m[1])}" target="_blank" rel="noopener">PDFを別タブで開く ↗</a>`);
+        continue;
+      }
       // [[チャプターID]] だけの行は、そのチャプターへのカードリンク
       if ((m = t.match(/^\[\[([\w-]+)\]\]$/)) && linkRenderer) {
         const card = linkRenderer(m[1]);

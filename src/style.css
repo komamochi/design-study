@@ -592,3 +592,8 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md blockquote.quote :is(p, li) { font-style: italic; font-weight: 700; line-height: 1.9; margin: 0; }
 .prose.md blockquote.quote strong { font-weight: 700; }
 .quote-chip { display: inline-block; width: 3px; height: 16px; margin: 0 6px 0 2px; background: #C9C1BC; vertical-align: -3px; }
+
+/* PDF */
+.prose.md .pdf-embed { aspect-ratio: 16 / 10; margin: 8px 0 6px; background: #1E1E20; border-radius: var(--radius); overflow: hidden; }
+.prose.md .pdf-embed iframe { width: 100%; height: 100%; border: 0; display: block; }
+@media (max-width: 520px) { .prose.md .pdf-embed { aspect-ratio: 3 / 4; } }

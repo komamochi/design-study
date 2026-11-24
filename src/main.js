@@ -209,6 +209,7 @@ import { MD } from './markdown.js';
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
         <button class="btn" data-m="quote"><span class="quote-chip"></span> 選んだ部分を引用にする</button>
+        <button class="btn" data-m="pdf">📄 PDFを入れる</button><input type="file" accept="application/pdf" data-m="pdffile" hidden>
         <button class="btn" data-m="dark"><span class="dark-chip">A</span> 選んだ文字を黒背景にする</button>
         <select class="field" data-m="link" aria-label="チャプターのリンクを入れる">
           <option value="">🔗 チャプターのリンクを入れる</option>
@@ -250,6 +251,24 @@ import { MD } from './markdown.js';
       const head = ':::💡';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
       put(ta, a, b, wrapped, a, a + wrapped.length);
+    };
+    // PDF をアップロードして、カーソルの行のあとに [[pdf:場所|名前]] を入れる
+    const pdfBtn = md.querySelector('[data-m="pdf"]'), pdfIn = md.querySelector('[data-m="pdffile"]');
+    pdfBtn.onclick = () => pdfIn.click();
+    pdfIn.onchange = async () => {
+      const f = pdfIn.files[0]; pdfIn.value = ''; if (!f) return;
+      if (f.size > 50 * 1024 * 1024) { toast('50MBより大きいPDFは入れられません'); return; }
+      const ta = md.querySelector('textarea');
+      const pos = ta.selectionEnd;
+      pdfBtn.disabled = true; pdfBtn.textContent = 'アップロード中…';
+      const path = `${session.user.id}/${chid}-${Date.now()}.pdf`;
+      const { error } = await sb.storage.from('study-files').upload(path, f, { contentType: 'application/pdf' });
+      pdfBtn.disabled = false; pdfBtn.textContent = '📄 PDFを入れる';
+      if (error) { console.error(error); toast('アップロードできませんでした'); return; }
+      const v = ta.value; const nl = v.indexOf('\n', pos); const p = nl < 0 ? v.length : nl;
+      const ins = `\n\n[[pdf:${path}|${f.name.replace(/[\]|]/g, '')}]]\n`;
+      put(ta, p, p, ins, p + ins.length, p + ins.length);
+      toast('PDFを入れました。保存すると表示されます');
     };
     // 選んだ行を「:::引用」〜「:::」ではさんで、左に線のある引用にする（行頭の > はとる）
     md.querySelector('[data-m="quote"]').onclick = () => {
@@ -332,8 +351,21 @@ import { MD } from './markdown.js';
     sc.id = 'twitter-wjs'; sc.async = true; sc.src = 'https://platform.twitter.com/widgets.js';
     document.head.append(sc);
   }
+  // PDF：本人だけが見られる期限つきのURLを作って表示する
+  async function loadPdfs() {
+    const els = [...app.querySelectorAll('[data-pdf]')];
+    if (!els.length) return;
+    const paths = [...new Set(els.map(e => e.dataset.pdf))];
+    const { data } = await sb.storage.from('study-files').createSignedUrls(paths, 60 * 60 * 6);
+    const urls = Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
+    els.forEach(e => {
+      const u = urls[e.dataset.pdf]; if (!u) return;
+      if (e.tagName === 'A') e.href = u;
+      else e.querySelector('iframe').src = `${u}#view=FitH`;
+    });
+  }
   function fillBookmarks() {
-    loadTweets();
+    loadTweets(); loadPdfs();
     app.querySelectorAll('a.bookmark[data-ogp]').forEach(async a => {
       const url = a.dataset.ogp;
       try {
