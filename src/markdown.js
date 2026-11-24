@@ -17,7 +17,7 @@ export const MD = (() => {
     const codes = [];
     // ``〜`` は黒背景・白文字、`〜` はふつうのコード
     let s = esc(text)
-      .replace(/``([^`]+?)``/g, (_, c) => `\u0000${codes.push({ c, dark: true }) - 1}\u0000`)
+      .replace(/``\s*`?([^`]+?)`?\s*``/g, (_, c) => `\u0000${codes.push({ c, dark: true }) - 1}\u0000`)
       .replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push({ c }) - 1}\u0000`);
     s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, u) => `<img src="${esc(safeUrl(u))}" alt="${alt}" loading="lazy">`);
     s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`);

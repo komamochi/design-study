@@ -251,8 +251,10 @@ import { MD } from './markdown.js';
       if (a === b) { toast('黒背景にしたい文字を選んでください'); ta.focus(); return; }
       while (v[a - 1] === '`') a--;
       while (v[b] === '`') b++;
-      const text = v.slice(a, b).replace(/^`+|`+$/g, '');
-      const wrapped = `\`\`${text}\`\``;
+      // 選んだ範囲の前後の空白はそのまま外に残し、` はとりのぞく
+      const sel = v.slice(a, b), lead = sel.match(/^[\s`]*/)[0].replace(/`/g, ''), tail = sel.match(/[\s`]*$/)[0].replace(/`/g, '');
+      const text = sel.replace(/^[\s`]+|[\s`]+$/g, '');
+      const wrapped = `${lead}\`\`${text}\`\`${tail}`;
       ta.value = v.slice(0, a) + wrapped + v.slice(b);
       ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
     };
