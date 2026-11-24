@@ -265,7 +265,7 @@ import { MD } from './markdown.js';
     }
     const n = (v, cls) => v ? `<span class="${cls}">${v}</span>` : '<span class="ms-zero">–</span>';
     return `
-      <a class="back" href="#/home">‹ コース一覧</a>
+      <a class="back-link" href="#/home">‹ コース一覧</a>
       <h1 class="page-title">画像・動画の保存状況</h1>
       <section class="card ms-summary">
         <div><small>画像</small><b><span class="ms-ok">保存済み ${sum.imgOk}</span> ／ <span class="${sum.imgNg ? 'ms-ng' : 'ms-zero'}">まだ ${sum.imgNg}</span></b></div>
