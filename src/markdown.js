@@ -181,6 +181,8 @@ export const MD = (() => {
       if ((m = t.match(FENCE))) { flushAll(); blanks = 0; code = { lang: m[1], lines: [] }; continue; }
       if (!t) flushTable();
       if (!t) { flushPara(); flushQuote(); if (list) listGap = true; blanks++; continue; }
+      // 表のマスの中で改行されている（行が | で終わっていない）ときは、次の行も同じマスに入れる
+      if (t && table.length > 2 && !/\|$/.test(table[table.length - 1].trim())) { table[table.length - 1] += '<br>' + t; continue; }
       if (t.startsWith('|') && t.length > 1) { flushPara(); flushList(); flushQuote(); blanks = 0; table.push(t); continue; }
       flushTable();
       // 空行のあとに箇条書きでも字下げでもない行が来たら、箇条書きはそこで終わり
