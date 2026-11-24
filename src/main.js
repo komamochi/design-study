@@ -358,11 +358,9 @@ import { MD } from './markdown.js';
     const paths = [...new Set(els.map(e => e.dataset.pdf))];
     const { data } = await sb.storage.from('study-files').createSignedUrls(paths, 60 * 60 * 6);
     const urls = Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
-    els.forEach(e => {
-      const u = urls[e.dataset.pdf]; if (!u) return;
-      if (e.tagName === 'A') e.href = u;
-      else e.querySelector('iframe').src = `${u}#view=FitH`;
-    });
+    if (!Object.keys(urls).length) return;
+    const { mountPdf } = await import('./pdfviewer.js');
+    els.forEach(e => { const u = urls[e.dataset.pdf]; if (u) mountPdf(e, u); });
   }
   function fillBookmarks() {
     loadTweets(); loadPdfs();

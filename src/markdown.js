@@ -163,7 +163,7 @@ export const MD = (() => {
       // [[pdf:保存場所|ファイル名]] だけの行は、PDF をページの中で表示する
       if ((m = t.match(/^\[\[pdf:([^|\]]+)(?:\|([^\]]*))?\]\]$/))) {
         flushAll();
-        out().push(`<div class="pdf-embed" data-pdf="${esc(m[1])}"><iframe title="${esc(m[2] || 'PDF')}" loading="lazy"></iframe></div><a class="video-link pdf-link" data-pdf="${esc(m[1])}" target="_blank" rel="noopener">PDFを別タブで開く ↗</a>`);
+        out().push(`<div class="pdf-viewer" data-pdf="${esc(m[1])}" title="${esc(m[2] || 'PDF')}"></div>`);
         continue;
       }
       // [[チャプターID]] だけの行は、そのチャプターへのカードリンク
