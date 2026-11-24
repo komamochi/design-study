@@ -27,6 +27,7 @@ export const MD = (() => {
       return ch ? `<a class="ch-inline" href="#/courses/${ch.course}/${ch.id}">${t}</a>` : `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`;
     });
     s = s.replace(/(^|[\s（(「])(https?:\/\/[^\s<）)」]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
+    s = s.replace(/~~([^~]+?)~~/g, '<del>$1</del>');
     s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+?)__/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<em>$2</em>');
     s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code${codes[i].dark ? ' class="dark"' : ''}>${codes[i].c}</code>`);
