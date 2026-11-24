@@ -632,3 +632,22 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md td:first-child { white-space: nowrap; }
 @media (max-width: 520px) { .prose.md td:first-child { white-space: normal; } }
 .home-foot { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+
+/* 画像・動画の保存状況 */
+.ms-summary { display: flex; flex-wrap: wrap; gap: 16px 36px; align-items: center; padding: 20px 24px; margin-bottom: 12px; }
+.ms-summary small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.ms-summary b { font-size: 16px; }
+.ms-summary .btn { margin-left: auto; }
+.ms-ok { color: var(--ok); font-weight: 700; }
+.ms-ng { color: #D9534F; font-weight: 700; }
+.ms-warn { color: var(--wood-deep); font-weight: 700; }
+.ms-zero { color: var(--muted); font-weight: 400; }
+.ms-note { color: var(--muted); font-size: 13px; margin: 0 0 16px; line-height: 1.7; }
+.ms-table { padding: 8px; }
+.ms-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ms-table th, .ms-table td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: center; white-space: nowrap; }
+.ms-table th { font-size: 12px; color: var(--muted); font-weight: 600; }
+.ms-table th:first-child, .ms-table td:first-child { text-align: left; white-space: normal; }
+.ms-table td:first-child a { color: var(--ink); text-decoration: none; }
+.ms-table td:first-child small { color: var(--muted); font-size: 11px; }
+.ms-row-ng { background: #FDF3F2; }

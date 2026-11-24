@@ -166,7 +166,7 @@ import { MD } from './markdown.js';
             <span class="chev">›</span>
           </a>`).join('')}
       </div>
-      <div class="home-foot"><button class="link-btn" data-act="reset">学習ステータスをリセット</button><button class="link-btn" data-act="logout">ログアウト</button></div>`;
+      <div class="home-foot"><a class="link-btn" href="#/media">画像・動画の保存状況</a><button class="link-btn" data-act="reset">学習ステータスをリセット</button><button class="link-btn" data-act="logout">ログアウト</button></div>`;
   }
 
   function pageCourse(id) {
@@ -240,6 +240,54 @@ import { MD } from './markdown.js';
   }
 
   // 教材の中の [[チャプターID]] → チャプターのカードリンク
+  // ---------- 画像・動画の保存状況 ----------
+  const VIDEO_HOST = /^https?:\/\/\S*(loom\.com|youtube\.com|youtu\.be|vimeo\.com)\S*$/i;
+  function mediaOf(body) {
+    const imgs = [...body.matchAll(/!\[[^\]]*\]\(([^)\s]+)/g)].map(m => m[1]);
+    const lines = body.split('\n').map(l => l.trim());
+    return {
+      imgOk: imgs.filter(u => u.startsWith('storage:')).length,
+      imgNg: imgs.filter(u => /^https?:/.test(u)).length,
+      vidOk: lines.filter(l => /^\[\[video:/.test(l)).length,
+      vidNg: lines.filter(l => VIDEO_HOST.test(l)).length,
+      pdf: lines.filter(l => /^\[\[pdf:/.test(l)).length,
+    };
+  }
+  function pageMedia() {
+    const rows = [];
+    const sum = { imgOk: 0, imgNg: 0, vidOk: 0, vidNg: 0, pdf: 0 };
+    for (const c of COURSES) for (const ch of c.chapters) {
+      const body = CONTENT[ch.id]; if (!body) continue;
+      const m = mediaOf(body);
+      if (!(m.imgOk + m.imgNg + m.vidOk + m.vidNg + m.pdf)) continue;
+      Object.keys(sum).forEach(k => sum[k] += m[k]);
+      rows.push({ c, ch, m });
+    }
+    const n = (v, cls) => v ? `<span class="${cls}">${v}</span>` : '<span class="ms-zero">–</span>';
+    return `
+      <a class="back" href="#/home">‹ コース一覧</a>
+      <h1 class="page-title">画像・動画の保存状況</h1>
+      <section class="card ms-summary">
+        <div><small>画像</small><b><span class="ms-ok">保存済み ${sum.imgOk}</span> ／ <span class="${sum.imgNg ? 'ms-ng' : 'ms-zero'}">まだ ${sum.imgNg}</span></b></div>
+        <div><small>動画</small><b><span class="ms-ok">保存済み ${sum.vidOk}</span> ／ <span class="${sum.vidNg ? 'ms-warn' : 'ms-zero'}">外部（Loomなど） ${sum.vidNg}</span></b></div>
+        <div><small>PDF</small><b><span class="ms-ok">保存済み ${sum.pdf}</span></b></div>
+        ${sum.imgNg ? '<button class="btn primary" data-act="mirror">まだの画像をもう一度保存する</button>' : ''}
+      </section>
+      <p class="ms-note">「外部」の動画は Loom などに置かれたままです。持ち主が消すと見られなくなります。動画ファイルがあれば「🎬 動画を入れる」で保存できます。</p>
+      ${rows.length ? `<section class="card ms-table"><div class="table-wrap"><table>
+        <thead><tr><th>チャプター</th><th>画像 保存済み</th><th>画像 まだ</th><th>動画 保存済み</th><th>動画 外部</th><th>PDF</th></tr></thead>
+        <tbody>${rows.map(({ c, ch, m }) => `<tr${m.imgNg ? ' class="ms-row-ng"' : ''}>
+          <td><a href="#/courses/${c.id}/${ch.id}"><small>${esc(c.title)}</small><br>${esc(ch.title)}</a></td>
+          <td>${n(m.imgOk, 'ms-ok')}</td><td>${n(m.imgNg, 'ms-ng')}</td><td>${n(m.vidOk, 'ms-ok')}</td><td>${n(m.vidNg, 'ms-warn')}</td><td>${n(m.pdf, 'ms-ok')}</td>
+        </tr>`).join('')}</tbody></table></div></section>` : '<p class="ms-note">画像や動画の入った教材はまだありません。</p>'}`;
+  }
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('[data-act="mirror"]'); if (!b) return;
+    b.disabled = true; b.textContent = '保存中…';
+    tried.clear(); await mirrorImages();
+    if (location.hash === '#/media') render();
+  });
+
   const findChapter = id => { for (const c of COURSES) { const ch = c.chapters.find(x => x.id === id); if (ch) return { c, ch }; } return null; };
   MD.setLinkRenderer(id => {
     const f = findChapter(id); if (!f) return '';
@@ -391,6 +439,7 @@ import { MD } from './markdown.js';
     if (p0 === 'home' || (p0 === 'courses' && !p1)) { html = pageHome(); nav = 'home'; }
     else if (p0 === 'courses' && p2) { html = pageChapter(p1, p2); nav = 'home'; }
     else if (p0 === 'courses') { html = pageCourse(p1); nav = 'home'; }
+    else if (p0 === 'media') html = pageMedia();
     else html = notFound();
     app.innerHTML = html;
     document.title = `${$('h1', app)?.firstChild?.textContent.trim() || 'DESIGN STUDY'}｜DESIGN STUDY`;
