@@ -444,7 +444,7 @@ import { MD } from './markdown.js';
     app.querySelectorAll('a.bookmark[data-ogp]').forEach(async a => {
       const url = a.dataset.ogp;
       try {
-        OGP[url] ??= fetch(`/api/ogp?url=${encodeURIComponent(url)}`).then(r => r.ok ? r.json() : null);
+        OGP[url] ??= fetch(`/api/ogp?v=2&url=${encodeURIComponent(url)}`).then(r => r.ok ? r.json() : null);
         const d = await OGP[url];
         if (!d) return;
         if (d.title) a.querySelector('.bm-title').textContent = d.title;

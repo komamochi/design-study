@@ -13,6 +13,11 @@ export default async function handler(req, res) {
     const r = await fetch(u, { signal: ctrl.signal, redirect: 'follow', headers: { 'user-agent': 'Mozilla/5.0 (compatible; DesignStudyBot/1.0)', accept: 'text/html' } });
     clearTimeout(timer);
     const html = (await r.text()).slice(0, 400000);
+    // ブロック画面（Cloudflare の確認画面など）や エラーページ は使わない
+    const t0 = html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] || '';
+    if (!r.ok || /Attention Required|Just a moment|Access denied|Robot Check|captcha/i.test(t0)) {
+      return res.status(502).json({ error: 'blocked' });
+    }
     const meta = name => {
       const re = new RegExp(`<meta[^>]+(?:property|name)=["']${name}["'][^>]*>`, 'i');
       const tag = html.match(re)?.[0];
