@@ -15,13 +15,16 @@ export const MD = (() => {
   // 行内：太字・斜体・コード・リンク・URL自動リンク
   function inline(text) {
     const codes = [];
-    let s = esc(text).replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push(c) - 1}\u0000`);
+    // ``〜`` は黒背景・白文字、`〜` はふつうのコード
+    let s = esc(text)
+      .replace(/``([^`]+?)``/g, (_, c) => `\u0000${codes.push({ c, dark: true }) - 1}\u0000`)
+      .replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push({ c }) - 1}\u0000`);
     s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, u) => `<img src="${esc(safeUrl(u))}" alt="${alt}" loading="lazy">`);
     s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`);
     s = s.replace(/(^|[\s（(「])(https?:\/\/[^\s<）)」]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
     s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+?)__/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<em>$2</em>');
-    s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
+    s = s.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code${codes[i].dark ? ' class="dark"' : ''}>${codes[i].c}</code>`);
     return s;
   }
 

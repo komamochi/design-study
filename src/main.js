@@ -208,6 +208,7 @@ import { MD } from './markdown.js';
       <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。</p>
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
+        <button class="btn" data-m="dark"><span class="dark-chip">A</span> 選んだ文字を黒背景にする</button>
         <select class="field" data-m="link" aria-label="チャプターのリンクを入れる">
           <option value="">🔗 チャプターのリンクを入れる</option>
           ${COURSES.map(c => `<optgroup label="${esc(c.title)}">${c.chapters.map(ch => `<option value="${ch.id}">${esc(ch.title)}</option>`).join('')}</optgroup>`).join('')}
@@ -240,6 +241,18 @@ import { MD } from './markdown.js';
       const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e; // 行のおわりまで
       const head = ':::💡';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
+      ta.value = v.slice(0, a) + wrapped + v.slice(b);
+      ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
+    };
+    // 選んだ文字を ``〜`` ではさんで、黒背景・白文字にする（もともとの `〜` はつけ直す）
+    md.querySelector('[data-m="dark"]').onclick = () => {
+      const ta = md.querySelector('textarea');
+      let a = ta.selectionStart, b = ta.selectionEnd, v = ta.value;
+      if (a === b) { toast('黒背景にしたい文字を選んでください'); ta.focus(); return; }
+      while (v[a - 1] === '`') a--;
+      while (v[b] === '`') b++;
+      const text = v.slice(a, b).replace(/^`+|`+$/g, '');
+      const wrapped = `\`\`${text}\`\``;
       ta.value = v.slice(0, a) + wrapped + v.slice(b);
       ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
     };
