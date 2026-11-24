@@ -160,6 +160,8 @@ export const MD = (() => {
         callout = { color, icon, lines: [] };
         continue;
       }
+      // 中身のない見出し（「##」だけの行）は表示しない
+      if (/^#{1,6}$/.test(t)) { blanks = Math.min(blanks, 1); continue; }
       if ((m = t.match(/^(#{1,6})\s+(.*)$/))) {
         flushAll();
         const lv = m[1].length, text = m[2].replace(/^\*\*(.*)\*\*$/, '$1');
