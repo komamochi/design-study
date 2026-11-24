@@ -57,40 +57,46 @@ import { MD } from './markdown.js';
   const BUCKET = 'study-files';
   const IMG_RE = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)((?:\s+"[^"]*")?)\)/g;
   const tried = new Set();
-  let mirroring = false;
+  let mirroring = false, mirrorErr = '';
   async function sha(t) {
     const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
     return [...new Uint8Array(h)].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
   }
   async function mirrorOne(url) {
     try {
-      const r = await fetch(`/api/img?url=${encodeURIComponent(url)}`, { headers: { authorization: `Bearer ${session.access_token}` } });
-      if (!r.ok) return null;
-      const blob = await r.blob();
+      // まずブラウザから直接取る。取れなければアプリのサーバー経由で取る
+      let blob = null;
+      try { const d = await fetch(url, { mode: 'cors' }); if (d.ok) { const b = await d.blob(); if (b.type.startsWith('image/')) blob = b; } } catch {}
+      if (!blob) {
+        const r = await fetch(`/api/img?url=${encodeURIComponent(url)}`, { headers: { authorization: `Bearer ${session.access_token}` } });
+        if (!r.ok) { console.warn('画像を取れませんでした', r.status, await r.text().catch(() => ''), url); return null; }
+        blob = await r.blob();
+      }
       const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'png';
       const path = `${session.user.id}/img/${await sha(url)}.${ext}`;
       const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, upsert: true });
-      if (error) { console.error(error); return null; }
+      if (error) { console.error('画像を保存できませんでした', error); mirrorErr = error.message || String(error); return null; }
       return path;
     } catch (e) { console.error(e); return null; }
   }
   async function mirrorImages() {
     if (mirroring || !session) return;
     mirroring = true;
-    let saved = 0;
+    let saved = 0, failed = 0;
     try {
       for (const id of Object.keys(CONTENT)) {
         const urls = [...new Set([...(CONTENT[id] || '').matchAll(IMG_RE)].map(m => m[2]))].filter(u => !tried.has(u));
         if (!urls.length) continue;
         const map = {};
-        for (const u of urls) { tried.add(u); const p = await mirrorOne(u); if (p) map[u] = p; }
+        for (const u of urls) { tried.add(u); const p = await mirrorOne(u); if (p) map[u] = p; else failed++; }
         if (!Object.keys(map).length) continue;
         const cur = CONTENT[id] || '';
         const next = cur.replace(IMG_RE, (all, alt, u, t) => map[u] ? `![${alt}](storage:${map[u]}${t})` : all);
         if (next !== cur && await setContent(id, next)) saved += Object.keys(map).length;
       }
     } finally { mirroring = false; }
-    if (saved) { toast(`画像${saved}枚をアプリに保存しました`); if (!document.querySelector('.modal')) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
+    if (saved || failed) longToast(failed ? `画像${saved}枚を保存しました（${failed}枚は保存できませんでした${mirrorErr ? `：${mirrorErr}` : ''}）` : `画像${saved}枚をアプリに保存しました`);
+    if (saved) { if (!document.querySelector('.modal')) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
   }
 
   // 教材：チャプターごとに1行
@@ -105,6 +111,7 @@ import { MD } from './markdown.js';
     return true;
   }
 
+  const longToast = msg => { toast(msg); clearTimeout(toast.t); toast.t = setTimeout(() => ($('#toast').hidden = true), 6000); };
   const toast = msg => { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => (t.hidden = true), 1800); };
 
   // ---------- helpers ----------
