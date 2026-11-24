@@ -249,14 +249,40 @@ import { MD } from './markdown.js';
 
   // 教材の中の [[チャプターID]] → チャプターのカードリンク
   const findChapter = id => { for (const c of COURSES) { const ch = c.chapters.find(x => x.id === id); if (ch) return { c, ch }; } return null; };
-  MD.setLinkRenderer(id => {
+  const MD_CARD = id => {
     const f = findChapter(id); if (!f) return '';
     const { c, ch } = f;
     return `<a class="ch-link" href="#/courses/${c.id}/${ch.id}">
       <div class="ch-link-thumb">${chapterThumb(ch)}</div>
       <div class="ch-link-body"><small>${esc(c.title)}</small><b>${esc(ch.title)}</b></div>
       <span class="chev">›</span></a>`;
-  });
+  };
+  MD.setLinkRenderer(MD_CARD);
+
+  // スクール（NOT DESIGN SCHOOL）の教材へのリンクは、アプリの中の同じチャプターにつなぐ
+  // 番号がずれていることがあるので、番号を除いたタイトルで探す
+  const SCHOOL_COURSE = { '6e2e7683-7427-4c4a-912b-a458801965e1': 'basic', '1b34b55b-e627-48be-808c-b3e6d4a9f2bf': 'web' };
+  const SCHOOL_CH_RE = /^https?:\/\/notdesignschool\.vibely\.site\/courses\/([0-9a-f-]+)\/chapters\/[0-9a-f-]+/i;
+  const chKey = t => {
+    const n = String(t).normalize('NFKC').replace(/[｜|].*$/, '').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
+    const task = n.startsWith('課題');
+    return { task, rest: n.replace(/^課題/, '').replace(/^\d+/, '') };
+  };
+  function resolveSchoolChapter(url, text) {
+    const m = String(url).match(SCHOOL_CH_RE);
+    if (!m || !text) return null;
+    const k = chKey(text);
+    if (k.rest.length < 2) return null;
+    const home = SCHOOL_COURSE[m[1].toLowerCase()];
+    const courses = [...COURSES].sort((a, b) => (b.id === home) - (a.id === home));
+    for (const exact of [true, false]) for (const c of courses) for (const ch of c.chapters) {
+      const t = chKey(ch.title);
+      if (t.task !== k.task || t.rest.length < 2) continue;
+      if (exact ? t.rest === k.rest : (k.rest.length >= 5 && t.rest.length >= 5 && (k.rest.startsWith(t.rest) || t.rest.startsWith(k.rest)))) return { course: c.id, id: ch.id };
+    }
+    return null;
+  }
+  MD.setChapterResolver(resolveSchoolChapter);
 
   function contentEditor(chid, title) {
     const bg = document.createElement('div'); bg.className = 'drawer-bg';
@@ -447,6 +473,9 @@ import { MD } from './markdown.js';
         OGP[url] ??= fetch(`/api/ogp?v=2&url=${encodeURIComponent(url)}`).then(r => r.ok ? r.json() : null);
         const d = await OGP[url];
         if (!d) return;
+        // スクールの教材のURLだけだったときは、タイトルでアプリのチャプターを探してカードにする
+        const ch = d.title && resolveSchoolChapter(url, d.title);
+        if (ch && a.isConnected) { const card = MD_CARD(ch.id); if (card) { a.outerHTML = card; return; } }
         if (d.title) a.querySelector('.bm-title').textContent = d.title;
         if (d.description) a.querySelector('.bm-desc').textContent = d.description;
         if (d.site) a.querySelector('.bm-site span').textContent = d.site;

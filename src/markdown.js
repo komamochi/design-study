@@ -22,7 +22,10 @@ export const MD = (() => {
       .replace(/``\s*`?([^`]+?)`?\s*``/g, (_, c) => `\u0000${codes.push({ c, dark: true }) - 1}\u0000`)
       .replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push({ c }) - 1}\u0000`);
     s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, u) => `<img ${imgSrc(u)} alt="${alt}" loading="lazy">`);
-    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`);
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => {
+      const ch = resolveCh(u.replace(/&amp;/g, '&'), t.replace(/<[^>]+>/g, ''));
+      return ch ? `<a class="ch-inline" href="#/courses/${ch.course}/${ch.id}">${t}</a>` : `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`;
+    });
     s = s.replace(/(^|[\s（(「])(https?:\/\/[^\s<）)」]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
     s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+?)__/g, '<strong>$1</strong>');
     s = s.replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, '$1<em>$2</em>');
@@ -69,6 +72,10 @@ export const MD = (() => {
   // [[チャプターID]] をカードにする関数（main.js から渡す）
   let linkRenderer = null;
   const setLinkRenderer = fn => { linkRenderer = fn; };
+  // スクールの教材へのリンク → アプリの中のチャプター（見つからなければ null）
+  let chapterResolver = null;
+  const setChapterResolver = fn => { chapterResolver = fn; };
+  const resolveCh = (url, text) => chapterResolver ? chapterResolver(url, text) : null;
 
   // 枠（コールアウト）の色
   const CALLOUT_COLORS = ['caramel', 'gray', 'white', 'green', 'yellow', 'blue', 'red', 'beige'];
@@ -230,6 +237,8 @@ export const MD = (() => {
       // URL だけの行（または [文字](URL) だけの行）は記事のリンクカードにする
       if ((m = t.match(/^(https?:\/\/\S+)$/) || t.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/))) {
         const url = m[2] || m[1], label = m[2] ? m[1] : '';
+        const ch = label && resolveCh(url, label);
+        if (ch && linkRenderer) { flushAll(); out().push(linkRenderer(ch.id)); continue; }
         let host = ''; try { host = new URL(url).hostname.replace(/^www\./, ''); } catch {}
         flushAll();
         out().push(`<a class="bookmark" data-ogp="${esc(url)}" href="${esc(url)}" target="_blank" rel="noopener"><div class="bm-body"><b class="bm-title">${esc(label && label !== url ? label : host || url)}</b><span class="bm-desc"></span><span class="bm-site"><img class="bm-icon" alt="" hidden><span>${esc(host)}</span></span></div><div class="bm-thumb" hidden></div></a>`);
@@ -267,5 +276,5 @@ export const MD = (() => {
       .join('');
   }
 
-  return { render, setLinkRenderer };
+  return { render, setLinkRenderer, setChapterResolver };
 })();
