@@ -634,3 +634,4 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .home-foot { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
 .thumb.il { --il-bg: var(--honey); }
 .thumb.il.task { --il-bg: var(--ink); }
+.side-box .side-edit { width: 100%; margin-top: 12px; justify-content: center; }

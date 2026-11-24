@@ -203,7 +203,7 @@ import { MD } from './markdown.js';
           <small style="color:var(--muted)">チャプター ${n}</small>
           <h1 style="font-size:24px;margin-bottom:18px">${esc(ch.title)}</h1>
           ${content
-            ? `<div class="md-tools"><button class="btn" data-act="edit">✎ 教材を編集</button></div>${MD.render(content, ch.title)}`
+            ? `<div class="md-tools only-narrow"><button class="btn" data-act="edit">✎ 教材を編集</button></div>${MD.render(content, ch.title)}`
             : `<div class="card empty-content">
                 <p><b>まだ教材の内容がありません</b><br>元の教材の「全体をコピー」でコピーした文章を貼り付けると、ここに表示されます。</p>
                 <button class="btn primary" data-act="edit">教材を貼り付け</button>
@@ -235,6 +235,7 @@ import { MD } from './markdown.js';
           </select>
           <div style="margin-top:16px">${progress(c)}</div>
           </div>
+          <button class="btn side-edit only-wide" data-act="edit">${content ? '✎ 教材を編集' : '教材を貼り付け'}</button>
         </aside>
       </div>`;
   }
