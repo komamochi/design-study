@@ -482,7 +482,7 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md code { font-size: 16px; }
 .prose.md h4 { font-size: 17px; }
 .prose.md h3 { font-size: 20px; }
-.prose.md h2 { font-size: 23px; }
+.prose.md h2 { font-size: 25px; }
 .prose.md figcaption, .prose.md .video-link { font-size: 14px; }
 
 /* 教材のテキストは英数字も含めて Noto Sans JP */
