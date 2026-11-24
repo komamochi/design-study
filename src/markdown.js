@@ -122,7 +122,21 @@ export const MD = (() => {
       quote = [];
       if (body) out().push(`<div class="callout c-caramel"><span class="callout-icon">💡</span><div class="callout-body">${render(body, '', true)}</div></div>`);
     };
-    const flushAll = () => { flushPara(); flushList(); flushQuote(); };
+    // 表： | 見出し | 見出し | の次に | --- | --- | の行があれば表にする
+    let table = [];
+    const cells = l => l.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map(c => c.trim().replace(/\\\|/g, '|'));
+    const flushTable = () => {
+      if (!table.length) return;
+      const rows = table; table = [];
+      const isSep = l => /^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?$/.test(l.trim());
+      if (rows.length < 2 || !isSep(rows[1])) { para.push(...rows); flushPara(); return; }
+      const align = cells(rows[1]).map(c => /^:-+:$/.test(c) ? 'center' : /-:$/.test(c) ? 'right' : '');
+      const td = (tag, c, i) => `<${tag}${align[i] ? ` style="text-align:${align[i]}"` : ''}>${lines2(c.split(/<br\s*\/?>/i))}</${tag}>`;
+      const head = cells(rows[0]);
+      const body = rows.slice(2).map(cells);
+      out().push(`<div class="table-wrap"><table><thead><tr>${head.map((c, i) => td('th', c, i)).join('')}</tr></thead><tbody>${body.map(r => `<tr>${head.map((_, i) => td('td', r[i] ?? '', i)).join('')}</tr>`).join('')}</tbody></table></div>`);
+    };
+    const flushAll = () => { flushPara(); flushList(); flushQuote(); flushTable(); };
     let firstH1 = !inner;
     let callout = null;   // ::: 〜 ::: の中身をためる
     let blanks = 0;       // 続いた空行の数（2行以上で余白を足す）
@@ -156,7 +170,10 @@ export const MD = (() => {
         continue;
       }
       if ((m = t.match(FENCE))) { flushAll(); blanks = 0; code = { lang: m[1], lines: [] }; continue; }
+      if (!t) flushTable();
       if (!t) { flushPara(); flushQuote(); if (list) listGap = true; blanks++; continue; }
+      if (t.startsWith('|') && t.length > 1) { flushPara(); flushList(); flushQuote(); blanks = 0; table.push(t); continue; }
+      flushTable();
       // 空行のあとに箇条書きでも字下げでもない行が来たら、箇条書きはそこで終わり
       if (list && listGap && !/^\s+\S/.test(line) && !/^\s*([-*+]|\d+[.)])\s+/.test(line)) flushList();
       // 空行を2行以上続けたら、1行ふえるごとに余白を足す

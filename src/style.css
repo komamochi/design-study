@@ -623,3 +623,11 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 /* アプリに保存した動画 */
 .prose.md .video-file { margin: 8px 0 24px; background: #1E1E20; border-radius: var(--radius); overflow: hidden; }
 .prose.md .video-file video { display: block; width: 100%; max-height: 80vh; background: #000; }
+
+/* 表 */
+.prose.md .table-wrap { margin: 8px 0 24px; overflow-x: auto; }
+.prose.md table { border-collapse: collapse; font-size: 15px; line-height: 1.7; min-width: 60%; }
+.prose.md th, .prose.md td { border: 1px solid var(--line); padding: 10px 14px; text-align: left; vertical-align: top; }
+.prose.md th { background: var(--surface-2); font-weight: 700; white-space: nowrap; }
+.prose.md td:first-child { white-space: nowrap; }
+@media (max-width: 520px) { .prose.md td:first-child { white-space: normal; } }
