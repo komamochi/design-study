@@ -25,6 +25,41 @@ export const MD = (() => {
     return s;
   }
 
+  // コードの色分け（CSS はセレクタ・プロパティ・値、ほかは文字列・数字・コメント）
+  function highlight(code, lang) {
+    const isCss = /^(css|scss|sass|less)$/i.test(lang) || (!lang && /[^{}]+\{[\s\S]*?[\w-]+\s*:[^;]+;[\s\S]*?\}/.test(code));
+    const span = (c, t) => `<span class="tk-${c}">${esc(t)}</span>`;
+    if (isCss) {
+      let inBlock = false;
+      return code.split('\n').map(line => {
+        // 字下げが消えて貼られた中身は、{ } の中を2文字下げる
+        let out = inBlock && line.trim() && !/^\s/.test(line) && !/^}/.test(line) ? '  ' : '', rest = line;
+        while (rest.length) {
+          let m;
+          if ((m = rest.match(/^\/\*.*?(\*\/|$)/))) out += span('com', m[0]);
+          else if ((m = rest.match(/^\s+/))) out += m[0];
+          else if (rest[0] === '{') { inBlock = true; out += span('pun', '{'); m = ['{']; }
+          else if (rest[0] === '}') { inBlock = false; out += span('pun', '}'); m = ['}']; }
+          else if (inBlock && (m = rest.match(/^([\w-]+)(\s*:)/))) { out += span('prop', m[1]) + span('pun', m[2]); }
+          else if (inBlock && (m = rest.match(/^[^;{}]+/))) out += m[0].split(/(-?\d*\.?\d+[a-z%]*|#[0-9a-f]{3,8}\b|"[^"]*"|'[^']*')/i).map((p, i) => i % 2 ? span('num', p) : esc(p)).join('');
+          else if (!inBlock && (m = rest.match(/^[^{}]+/))) out += m[0].split(/([.#:][\w-]+)/).map((p, i) => i % 2 ? span('cls', p) : p ? span('tag', p) : '').join('');
+          else { m = [rest[0]]; out += esc(rest[0]); }
+          rest = rest.slice(m[0].length);
+        }
+        return out;
+      }).join('\n');
+    }
+    return code.split(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`[^`]*`|\b\d+(?:\.\d+)?\b|<\/?[\w-]+|\b(?:const|let|var|function|return|if|else|for|while|import|export|from|class|new|true|false|null|undefined|await|async)\b)/)
+      .map((p, i) => {
+        if (!(i % 2)) return esc(p);
+        if (/^(\/\/|\/\*|<!--)/.test(p)) return span('com', p);
+        if (/^["'`]/.test(p)) return span('str', p);
+        if (/^\d/.test(p)) return span('num', p);
+        if (p[0] === '<') return span('tag', p);
+        return span('kw', p);
+      }).join('');
+  }
+
   // ブロック単位に分解して HTML 化。h2 ごとにセクションを分ける
   // [[チャプターID]] をカードにする関数（main.js から渡す）
   let linkRenderer = null;
@@ -73,6 +108,8 @@ export const MD = (() => {
     let firstH1 = !inner;
     let callout = null;   // ::: 〜 ::: の中身をためる
     let blanks = 0;       // 続いた空行の数（2行以上で余白を足す）
+    let code = null;      // ``` 〜 ``` のコード
+    const FENCE = /^(?:`{3,}|~{3,}|、{3}|｀{3})\s*([\w+#-]*)\s*$/;
 
     for (const raw of lines) {
       const line = raw.replace(/\s+$/, '');
@@ -87,6 +124,20 @@ export const MD = (() => {
         } else callout.lines.push(raw);
         continue;
       }
+      // コード： ``` で始めて ``` で閉じる
+      if (code) {
+        if (FENCE.test(t) && !FENCE.exec(t)[1]) {
+          const ls = code.lines;
+          while (ls.length && !ls[0].trim()) ls.shift();
+          while (ls.length && !ls[ls.length - 1].trim()) ls.pop();
+          const ind = Math.min(...ls.filter(l => l.trim()).map(l => l.match(/^\s*/)[0].length), 99);
+          const body = ls.map(l => l.slice(Math.min(ind, l.match(/^\s*/)[0].length))).join('\n');
+          out().push(`<div class="code-block"><button class="code-copy" type="button" title="コピー" aria-label="コピー"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></svg></button><pre><code>${highlight(body, code.lang)}</code></pre></div>`);
+          code = null;
+        } else code.lines.push(raw.replace(/\s+$/, ''));
+        continue;
+      }
+      if ((m = t.match(FENCE))) { flushAll(); blanks = 0; code = { lang: m[1], lines: [] }; continue; }
       if (!t) { flushPara(); flushQuote(); if (list) listGap = true; blanks++; continue; }
       // 空行のあとに箇条書きでも字下げでもない行が来たら、箇条書きはそこで終わり
       if (list && listGap && !/^\s+\S/.test(line) && !/^\s*([-*+]|\d+[.)])\s+/.test(line)) flushList();

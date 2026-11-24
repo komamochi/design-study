@@ -561,3 +561,19 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md li > ul, .prose.md li > ol { margin: 8px 0 4px; }
 .prose.md ol > li { margin-bottom: 12px; }
 .prose.md ul ul, .prose.md ol ul { list-style-type: disc; }
+
+/* コード（``` 〜 ```） */
+.prose.md .code-block { position: relative; margin: 8px 0 20px; background: #1E1E20; border-radius: var(--radius); }
+.prose.md .code-block pre { margin: 0; padding: 20px 52px 20px 20px; overflow-x: auto; }
+.prose.md .code-block code { background: none; padding: 0; border-radius: 0; color: #E6E1DC; font-family: 'SFMono-Regular', Menlo, Consolas, 'Noto Sans JP', monospace; font-size: 14px; line-height: 1.9; white-space: pre; }
+.code-copy { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: #A9A39E; cursor: pointer; }
+.code-copy:hover { background: rgba(255,255,255,.08); color: #fff; }
+.code-copy.done { color: #7BD88F; }
+.tk-tag { color: #8FB3C9; }
+.tk-cls { color: #E8A15C; }
+.tk-prop { color: #C39AC9; }
+.tk-num { color: #E26D6D; }
+.tk-str { color: #A8C97F; }
+.tk-kw { color: #C39AC9; }
+.tk-com { color: #7E7A76; font-style: italic; }
+.tk-pun { color: #E6E1DC; }

@@ -343,6 +343,15 @@ import { MD } from './markdown.js';
     btn.disabled = false; btn.textContent = 'ログイン';
     if (error) { err.textContent = 'メールアドレスかパスワードが違います'; err.hidden = false; }
   });
+  // コードのコピー
+  document.addEventListener('click', async e => {
+    const b = e.target.closest('.code-copy');
+    if (!b) return;
+    try { await navigator.clipboard.writeText(b.parentElement.querySelector('code').textContent); } catch { return; }
+    b.classList.add('done'); toast('コピーしました');
+    setTimeout(() => b.classList.remove('done'), 1500);
+  });
+
   document.addEventListener('click', async e => {
     if (!e.target.closest('[data-act="logout"]')) return;
     if (!confirm('ログアウトしますか？')) return;
