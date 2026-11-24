@@ -208,7 +208,7 @@ import { MD } from './markdown.js';
         <article>
           ${chapterThumb(ch, 'hero')}
           <small style="color:var(--muted)">チャプター ${n}</small>
-          <h1 style="font-size:24px;margin-bottom:18px">${esc(ch.title)}</h1>
+          <h1 style="font-size:27px;margin-bottom:18px">${esc(ch.title)}</h1>
           ${content
             ? `<div class="md-tools only-narrow"><button class="btn" data-act="edit">✎ 教材を編集</button></div>${MD.render(content, ch.title)}`
             : `<div class="card empty-content">
