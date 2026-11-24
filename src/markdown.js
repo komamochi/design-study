@@ -106,7 +106,13 @@ export const MD = (() => {
       top().items.push({ lines: [text], subs: [] });
       listGap = false;
     };
-    const flushQuote = () => { if (quote.length) { out().push(`<blockquote>${lines2(quote)}</blockquote>`); quote = []; } };
+    // 「>」の引用は、キャラメル色の枠にする
+    const flushQuote = () => {
+      if (!quote.length) return;
+      const body = quote.join('\n').replace(/\n\s*\n(\s*\n)+/g, '\n\n').trim();
+      quote = [];
+      if (body) out().push(`<div class="callout c-caramel"><div class="callout-body">${render(body, '', true)}</div></div>`);
+    };
     const flushAll = () => { flushPara(); flushList(); flushQuote(); };
     let firstH1 = !inner;
     let callout = null;   // ::: 〜 ::: の中身をためる
