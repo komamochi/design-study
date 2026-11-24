@@ -509,6 +509,7 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md h3 { margin-top: 40px; }
 .prose.md h4 { margin-top: 32px; }
 .prose.md .callout-body h3 { margin-top: 16px; }
+.prose.md .callout-body :is(h2, h3) { font-size: 18px; }
 .prose.md h2 + h3, .prose.md .md-space + h3 { margin-top: 8px; }
 .prose.md .callout { margin-bottom: 24px; }
 .prose.md .md-space { display: block; }
