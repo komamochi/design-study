@@ -632,3 +632,5 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md td:first-child { white-space: nowrap; }
 @media (max-width: 520px) { .prose.md td:first-child { white-space: normal; } }
 .home-foot { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; }
+.thumb.il { --il-bg: var(--honey); }
+.thumb.il.task { --il-bg: var(--ink); }
