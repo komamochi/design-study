@@ -71,6 +71,13 @@ export const MD = (() => {
   // 枠（コールアウト）の色
   const CALLOUT_COLORS = ['caramel', 'gray', 'white', 'green', 'yellow', 'blue', 'red', 'beige'];
 
+  // ::: 〜 ::: の枠。「:::引用」なら左に線のある引用にする
+  function boxHtml(c) {
+    const body = render(c.lines.join('\n'), '', true);
+    if (/^(引用|quote)$/i.test(c.icon)) return `<blockquote class="quote">${body}</blockquote>`;
+    return `<div class="callout c-${c.color}">${c.icon ? `<span class="callout-icon">${esc(c.icon)}</span>` : ''}<div class="callout-body">${body}</div></div>`;
+  }
+
   function render(md, title = '', inner = false) {
     const lines = String(md).replace(/\r\n?/g, '\n').split('\n');
     const sections = [{ head: '', body: [] }];
@@ -128,7 +135,7 @@ export const MD = (() => {
       if (callout) {
         if (t === ':::') {
           flushAll();
-          out().push(`<div class="callout c-${callout.color}">${callout.icon ? `<span class="callout-icon">${esc(callout.icon)}</span>` : ''}<div class="callout-body">${render(callout.lines.join('\n'), '', true)}</div></div>`);
+          out().push(boxHtml(callout));
           callout = null;
         } else callout.lines.push(raw);
         continue;
@@ -220,7 +227,7 @@ export const MD = (() => {
     }
     flushAll();
     // 閉じ忘れた枠は最後まで枠にする
-    if (callout) { lines.length = 0; const c = callout; callout = null; out().push(`<div class="callout c-${c.color}">${c.icon ? `<span class="callout-icon">${esc(c.icon)}</span>` : ''}<div class="callout-body">${render(c.lines.join('\n'), '', true)}</div></div>`); }
+    if (callout) { lines.length = 0; const c = callout; callout = null; out().push(boxHtml(c)); }
     if (inner) return sections.map(s => s.body.join('')).join('');
 
     return sections

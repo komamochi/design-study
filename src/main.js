@@ -208,6 +208,7 @@ import { MD } from './markdown.js';
       <p class="modal-note">元の教材の「全体をコピー」でコピーした文章をそのまま貼り付けてください。</p>
       <div class="modal-tools">
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
+        <button class="btn" data-m="quote"><span class="quote-chip"></span> 選んだ部分を引用にする</button>
         <button class="btn" data-m="dark"><span class="dark-chip">A</span> 選んだ文字を黒背景にする</button>
         <select class="field" data-m="link" aria-label="チャプターのリンクを入れる">
           <option value="">🔗 チャプターのリンクを入れる</option>
@@ -248,6 +249,17 @@ import { MD } from './markdown.js';
       const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e; // 行のおわりまで
       const head = ':::💡';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
+      put(ta, a, b, wrapped, a, a + wrapped.length);
+    };
+    // 選んだ行を「:::引用」〜「:::」ではさんで、左に線のある引用にする（行頭の > はとる）
+    md.querySelector('[data-m="quote"]').onclick = () => {
+      const ta = md.querySelector('textarea');
+      let a = ta.selectionStart, b = ta.selectionEnd, v = ta.value;
+      if (a === b) { toast('引用にしたい部分を選んでください'); ta.focus(); return; }
+      a = v.lastIndexOf('\n', a - 1) + 1;
+      const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e;
+      const inner = v.slice(a, b).split('\n').map(l => l.replace(/^\s*>\s?/, '')).join('\n');
+      const wrapped = `:::引用\n${inner}\n:::`;
       put(ta, a, b, wrapped, a, a + wrapped.length);
     };
     // 選んだ文字を ``〜`` ではさんで、黒背景・白文字にする（もともとの `〜` はつけ直す）

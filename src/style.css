@@ -586,3 +586,9 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .prose.md .tweet-embed { margin: 8px 0 20px; }
 .prose.md .tweet-embed .twitter-tweet { margin: 0 auto !important; }
 .prose.md .tweet-embed blockquote.twitter-tweet { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; font-size: 14px; }
+
+/* 引用（:::引用 〜 :::）：左にグレーの線、太字の斜体 */
+.prose.md blockquote.quote { margin: 8px 0 24px; padding: 2px 0 2px 20px; border-left: 3px solid #C9C1BC; background: none; color: var(--ink); }
+.prose.md blockquote.quote :is(p, li) { font-style: italic; font-weight: 700; line-height: 1.9; margin: 0; }
+.prose.md blockquote.quote strong { font-weight: 700; }
+.quote-chip { display: inline-block; width: 3px; height: 16px; margin: 0 6px 0 2px; background: #C9C1BC; vertical-align: -3px; }
