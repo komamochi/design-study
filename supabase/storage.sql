@@ -3,7 +3,7 @@
 -- 置き場所は非公開。ログインした本人だけが、自分のフォルダのファイルを読み書きできます。
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('study-files', 'study-files', false, 52428800, array['application/pdf'])
+values ('study-files', 'study-files', false, 52428800, array['application/pdf', 'image/*', 'video/*'])
 on conflict (id) do nothing;
 
 drop policy if exists "study-files own read" on storage.objects;

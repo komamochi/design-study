@@ -2,6 +2,8 @@
 export const MD = (() => {
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const safeUrl = u => /^(https?:)?\/\//i.test(u) || /^data:image\//i.test(u) ? u : '#';
+  // 画像の src。アプリに保存した画像（storage:場所）は、あとで本人用のURLを入れる
+  const imgSrc = u => u.startsWith('storage:') ? `data-store="${esc(u.slice(8))}"` : `src="${esc(safeUrl(u))}"`;
 
   // 動画URL → 埋め込み用URL（対応していなければ null）
   function videoEmbed(url) {
@@ -19,7 +21,7 @@ export const MD = (() => {
     let s = esc(text)
       .replace(/``\s*`?([^`]+?)`?\s*``/g, (_, c) => `\u0000${codes.push({ c, dark: true }) - 1}\u0000`)
       .replace(/`([^`]+)`/g, (_, c) => `\u0000${codes.push({ c }) - 1}\u0000`);
-    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, u) => `<img src="${esc(safeUrl(u))}" alt="${alt}" loading="lazy">`);
+    s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^&]*&quot;)?\)/g, (_, alt, u) => `<img ${imgSrc(u)} alt="${alt}" loading="lazy">`);
     s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, u) => `<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${t}</a>`);
     s = s.replace(/(^|[\s（(「])(https?:\/\/[^\s<）)」]+)/g, (_, p, u) => `${p}<a href="${u}" target="_blank" rel="noopener">${u}</a>`);
     s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>').replace(/__([^_]+?)__/g, '<strong>$1</strong>');
@@ -160,6 +162,12 @@ export const MD = (() => {
       // 空行を2行以上続けたら、1行ふえるごとに余白を足す
       if (blanks >= 2 && out().length && !list) out().push(`<div class="md-space" style="height:${Math.min(blanks - 1, 6) * 24}px"></div>`);
       blanks = 0;
+      // [[video:保存場所|ファイル名]] だけの行は、アプリに保存した動画を再生する
+      if ((m = t.match(/^\[\[video:([^|\]]+)(?:\|([^\]]*))?\]\]$/))) {
+        flushAll();
+        out().push(`<div class="video-file"><video controls playsinline preload="metadata" data-store="${esc(m[1])}" title="${esc(m[2] || '動画')}"></video></div>`);
+        continue;
+      }
       // [[pdf:保存場所|ファイル名]] だけの行は、PDF をページの中で表示する
       if ((m = t.match(/^\[\[pdf:([^|\]]+)(?:\|([^\]]*))?\]\]$/))) {
         flushAll();
@@ -216,7 +224,7 @@ export const MD = (() => {
         flushAll();
         // 「image」「画像」やファイル名だけの説明文は出さない
         const cap = /^(image|img|画像|写真|photo|picture|スクリーンショット|screenshot)?\s*\d*$|\.(png|jpe?g|gif|webp|svg)$/i.test(m[1].trim()) ? '' : m[1];
-        out().push(`<figure><img src="${esc(safeUrl(m[2]))}" alt="${esc(m[1])}" loading="lazy">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
+        out().push(`<figure><img ${imgSrc(m[2])} alt="${esc(m[1])}" loading="lazy">${cap ? `<figcaption>${esc(cap)}</figcaption>` : ''}</figure>`);
         continue;
       }
       if ((m = t.match(/^>\s?(.*)$/))) { flushPara(); flushList(); quote.push(m[1]); continue; }

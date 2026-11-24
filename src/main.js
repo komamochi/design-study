@@ -49,6 +49,48 @@ import { MD } from './markdown.js';
     }
     CONTENT = Object.fromEntries((rows || []).map(r => [r.chapter_id, r.body]));
     if (!document.querySelector('.modal')) render();
+    if (initial) mirrorImages();
+  }
+
+  // ---------- 教材の画像をアプリ（Supabase）に保存する ----------
+  // 元のサイトがなくなっても画像が消えないように、外部の画像をコピーして storage:場所 に書きかえる
+  const BUCKET = 'study-files';
+  const IMG_RE = /!\[([^\]]*)\]\((https?:\/\/[^)\s]+)((?:\s+"[^"]*")?)\)/g;
+  const tried = new Set();
+  let mirroring = false;
+  async function sha(t) {
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+    return [...new Uint8Array(h)].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function mirrorOne(url) {
+    try {
+      const r = await fetch(`/api/img?url=${encodeURIComponent(url)}`, { headers: { authorization: `Bearer ${session.access_token}` } });
+      if (!r.ok) return null;
+      const blob = await r.blob();
+      const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'png';
+      const path = `${session.user.id}/img/${await sha(url)}.${ext}`;
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, upsert: true });
+      if (error) { console.error(error); return null; }
+      return path;
+    } catch (e) { console.error(e); return null; }
+  }
+  async function mirrorImages() {
+    if (mirroring || !session) return;
+    mirroring = true;
+    let saved = 0;
+    try {
+      for (const id of Object.keys(CONTENT)) {
+        const urls = [...new Set([...(CONTENT[id] || '').matchAll(IMG_RE)].map(m => m[2]))].filter(u => !tried.has(u));
+        if (!urls.length) continue;
+        const map = {};
+        for (const u of urls) { tried.add(u); const p = await mirrorOne(u); if (p) map[u] = p; }
+        if (!Object.keys(map).length) continue;
+        const cur = CONTENT[id] || '';
+        const next = cur.replace(IMG_RE, (all, alt, u, t) => map[u] ? `![${alt}](storage:${map[u]}${t})` : all);
+        if (next !== cur && await setContent(id, next)) saved += Object.keys(map).length;
+      }
+    } finally { mirroring = false; }
+    if (saved) { toast(`画像${saved}枚をアプリに保存しました`); if (!document.querySelector('.modal')) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
   }
 
   // 教材：チャプターごとに1行
@@ -210,6 +252,7 @@ import { MD } from './markdown.js';
         <button class="btn" data-m="callout">💡 選んだ部分を枠で囲む</button>
         <button class="btn" data-m="quote"><span class="quote-chip"></span> 選んだ部分を引用にする</button>
         <button class="btn" data-m="pdf">📄 PDFを入れる</button><input type="file" accept="application/pdf" data-m="pdffile" hidden>
+        <button class="btn" data-m="video">🎬 動画を入れる</button><input type="file" accept="video/mp4,video/quicktime,video/webm" data-m="videofile" hidden>
         <button class="btn" data-m="dark"><span class="dark-chip">A</span> 選んだ文字を黒背景にする</button>
         <select class="field" data-m="link" aria-label="チャプターのリンクを入れる">
           <option value="">🔗 チャプターのリンクを入れる</option>
@@ -252,24 +295,29 @@ import { MD } from './markdown.js';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
       put(ta, a, b, wrapped, a, a + wrapped.length);
     };
-    // PDF をアップロードして、カーソルの行のあとに [[pdf:場所|名前]] を入れる
-    const pdfBtn = md.querySelector('[data-m="pdf"]'), pdfIn = md.querySelector('[data-m="pdffile"]');
-    pdfBtn.onclick = () => pdfIn.click();
-    pdfIn.onchange = async () => {
-      const f = pdfIn.files[0]; pdfIn.value = ''; if (!f) return;
-      if (f.size > 50 * 1024 * 1024) { toast('50MBより大きいPDFは入れられません'); return; }
-      const ta = md.querySelector('textarea');
-      const pos = ta.selectionEnd;
-      pdfBtn.disabled = true; pdfBtn.textContent = 'アップロード中…';
-      const path = `${session.user.id}/${chid}-${Date.now()}.pdf`;
-      const { error } = await sb.storage.from('study-files').upload(path, f, { contentType: 'application/pdf' });
-      pdfBtn.disabled = false; pdfBtn.textContent = '📄 PDFを入れる';
-      if (error) { console.error(error); toast('アップロードできませんでした'); return; }
-      const v = ta.value; const nl = v.indexOf('\n', pos); const p = nl < 0 ? v.length : nl;
-      const ins = `\n\n[[pdf:${path}|${f.name.replace(/[\]|]/g, '')}]]\n`;
-      put(ta, p, p, ins, p + ins.length, p + ins.length);
-      toast('PDFを入れました。保存すると表示されます');
+    // PDF・動画をアップロードして、カーソルの行のあとに [[pdf:場所|名前]] / [[video:場所|名前]] を入れる
+    const uploader = (kind, label) => {
+      const btn = md.querySelector(`[data-m="${kind}"]`), input = md.querySelector(`[data-m="${kind}file"]`);
+      btn.onclick = () => input.click();
+      input.onchange = async () => {
+        const f = input.files[0]; input.value = ''; if (!f) return;
+        if (f.size > 50 * 1024 * 1024) { toast('50MBより大きいファイルは入れられません'); return; }
+        const ta = md.querySelector('textarea');
+        const pos = ta.selectionEnd;
+        btn.disabled = true; btn.textContent = 'アップロード中…';
+        const ext = kind === 'pdf' ? 'pdf' : ((f.name.split('.').pop() || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4');
+        const path = `${session.user.id}/${kind === 'pdf' ? '' : 'video/'}${chid}-${Date.now()}.${ext}`;
+        const { error } = await sb.storage.from(BUCKET).upload(path, f, { contentType: f.type || (kind === 'pdf' ? 'application/pdf' : 'video/mp4') });
+        btn.disabled = false; btn.textContent = label;
+        if (error) { console.error(error); toast('アップロードできませんでした'); return; }
+        const v = ta.value; const nl = v.indexOf('\n', pos); const p = nl < 0 ? v.length : nl;
+        const ins = `\n\n[[${kind}:${path}|${f.name.replace(/[\]|]/g, '')}]]\n`;
+        put(ta, p, p, ins, p + ins.length, p + ins.length);
+        toast(`${kind === 'pdf' ? 'PDF' : '動画'}を入れました。保存すると表示されます`);
+      };
     };
+    uploader('pdf', '📄 PDFを入れる');
+    uploader('video', '🎬 動画を入れる');
     // 選んだ行を「:::引用」〜「:::」ではさんで、左に線のある引用にする（行頭の > はとる）
     md.querySelector('[data-m="quote"]').onclick = () => {
       const ta = md.querySelector('textarea');
@@ -303,6 +351,7 @@ import { MD } from './markdown.js';
       close(); render(); window.scrollTo(0, y);
       requestAnimationFrame(() => window.scrollTo(0, y));
       toast(v ? '教材を保存しました🐾' : '内容を空にしました');
+      setTimeout(mirrorImages, 2000);
     };
     const del = md.querySelector('[data-m="del"]');
     if (del) del.onclick = async () => { if (!confirm('このチャプターの教材の内容を削除しますか？（元に戻せません）')) return; if (!(await setContent(chid, ''))) { toast('削除できませんでした'); return; } close(); render(); toast('削除しました'); };
@@ -353,14 +402,17 @@ import { MD } from './markdown.js';
   }
   // PDF：本人だけが見られる期限つきのURLを作って表示する
   async function loadPdfs() {
-    const els = [...app.querySelectorAll('[data-pdf]')];
+    const els = [...app.querySelectorAll('[data-pdf], [data-store]')];
     if (!els.length) return;
-    const paths = [...new Set(els.map(e => e.dataset.pdf))];
-    const { data } = await sb.storage.from('study-files').createSignedUrls(paths, 60 * 60 * 6);
+    const paths = [...new Set(els.map(e => e.dataset.pdf || e.dataset.store))];
+    const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 6);
     const urls = Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
     if (!Object.keys(urls).length) return;
+    els.filter(e => e.dataset.store).forEach(e => { const u = urls[e.dataset.store]; if (u) e.src = u; });
+    const pdfs = els.filter(e => e.dataset.pdf && urls[e.dataset.pdf]);
+    if (!pdfs.length) return;
     const { mountPdf } = await import('./pdfviewer.js');
-    els.forEach(e => { const u = urls[e.dataset.pdf]; if (u) mountPdf(e, u); });
+    pdfs.forEach(e => mountPdf(e, urls[e.dataset.pdf]));
   }
   function fillBookmarks() {
     loadTweets(); loadPdfs();
