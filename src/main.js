@@ -74,7 +74,9 @@ import { MD } from './markdown.js';
       }
       const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg').replace(/[^a-z0-9]/gi, '').slice(0, 5) || 'png';
       const path = `${session.user.id}/img/${await sha(url)}.${ext}`;
-      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, upsert: true });
+      // 上書き（upsert）は更新の権限がいるので使わない。すでにあれば保存済みとして扱う
+      const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: blob.type });
+      if (error && /exists|duplicate|409/i.test(`${error.message} ${error.statusCode || ''}`)) return path;
       if (error) { console.error('画像を保存できませんでした', error); mirrorErr = error.message || String(error); return null; }
       return path;
     } catch (e) { console.error(e); return null; }
