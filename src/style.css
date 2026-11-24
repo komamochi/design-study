@@ -581,3 +581,8 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 /* ``〜`` で囲んだ文字は黒背景・白文字 */
 .prose.md code.dark { background: #1E1E20; color: #fff; }
 .dark-chip { display: inline-grid; place-items: center; width: 18px; height: 18px; margin-right: 2px; border-radius: 3px; background: #1E1E20; color: #fff; font-size: 11px; font-weight: 700; vertical-align: -3px; }
+
+/* X（Twitter）の投稿 */
+.prose.md .tweet-embed { margin: 8px 0 20px; }
+.prose.md .tweet-embed .twitter-tweet { margin: 0 auto !important; }
+.prose.md .tweet-embed blockquote.twitter-tweet { border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 20px; font-size: 14px; }

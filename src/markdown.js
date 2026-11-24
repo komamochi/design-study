@@ -174,6 +174,13 @@ export const MD = (() => {
         out().push(`<div class="video-embed"><iframe src="${esc(videoEmbed(t))}" allowfullscreen allow="autoplay; fullscreen; picture-in-picture" loading="lazy"></iframe></div><a class="video-link" href="${esc(t)}" target="_blank" rel="noopener">動画を別タブで開く ↗</a>`);
         continue;
       }
+      // X（Twitter）の投稿URLだけの行は、投稿のカードをそのまま表示する
+      if ((m = t.match(/^\[?[^\]]*?\]?\(?(https?:\/\/(?:www\.|mobile\.)?(?:twitter|x)\.com\/(\w+)\/status(?:es)?\/(\d+))[^\s)]*\)?$/i))) {
+        flushAll();
+        const url = `https://twitter.com/${m[2]}/status/${m[3]}`;
+        out().push(`<div class="tweet-embed"><blockquote class="twitter-tweet" data-lang="ja" data-dnt="true"><a href="${esc(url)}">${esc(url)}</a></blockquote></div>`);
+        continue;
+      }
       // URL だけの行（または [文字](URL) だけの行）は記事のリンクカードにする
       if ((m = t.match(/^(https?:\/\/\S+)$/) || t.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/))) {
         const url = m[2] || m[1], label = m[2] ? m[1] : '';

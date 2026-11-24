@@ -311,7 +311,17 @@ import { MD } from './markdown.js';
 
   // 記事リンクカードに、タイトル・説明・画像を入れる
   const OGP = {};
+  // X（Twitter）の投稿をカードにする（公式の埋め込みスクリプトを読み込む）
+  function loadTweets() {
+    if (!app.querySelector('blockquote.twitter-tweet')) return;
+    if (window.twttr?.widgets) { window.twttr.widgets.load(app); return; }
+    if (document.getElementById('twitter-wjs')) return;
+    const sc = document.createElement('script');
+    sc.id = 'twitter-wjs'; sc.async = true; sc.src = 'https://platform.twitter.com/widgets.js';
+    document.head.append(sc);
+  }
   function fillBookmarks() {
+    loadTweets();
     app.querySelectorAll('a.bookmark[data-ogp]').forEach(async a => {
       const url = a.dataset.ogp;
       try {
