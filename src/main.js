@@ -455,7 +455,7 @@ import { MD } from './markdown.js';
         if (d.image) {
           const th = a.querySelector('.bm-thumb');
           const img = new Image();
-          img.alt = ''; img.loading = 'lazy'; img.src = d.image;
+          img.alt = ''; img.decoding = 'async'; img.src = d.image;
           img.onload = () => { th.append(img); th.hidden = false; a.classList.add('has-thumb'); };
         }
       } catch {}
