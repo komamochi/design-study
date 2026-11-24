@@ -617,3 +617,5 @@ mark { background: var(--wood-soft); color: inherit; border-radius: 3px; }
 .pv-btn { width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-radius: 50%; background: none; color: #fff; font-size: 22px; line-height: 1; cursor: pointer; }
 .pv-btn:hover { background: rgba(255,255,255,.12); }
 @media (max-width: 520px) { .pv-unit { display: none; } .pv-bar { height: 40px; bottom: 10px; } .pv-open { top: 8px; right: 12px; width: 34px; height: 34px; } }
+.pv-scroll { scroll-snap-type: y proximity; }
+.pv-page { scroll-snap-align: start; }

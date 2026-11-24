@@ -25,7 +25,7 @@ export async function mountPdf(el, url) {
   const num = el.querySelector('.pv-num'), total = el.querySelector('.pv-total');
 
   let doc;
-  try { doc = await pdfjs.getDocument(url).promise; }
+  try { doc = await pdfjs.getDocument({ url, cMapUrl: '/pdfjs/cmaps/', cMapPacked: true, standardFontDataUrl: '/pdfjs/standard_fonts/', useSystemFonts: true }).promise; }
   catch (e) { console.error(e); el.classList.add('pv-error'); pagesEl.innerHTML = '<p class="pv-msg">PDFを読み込めませんでした</p>'; return; }
   total.textContent = `/ ${doc.numPages}`;
 
