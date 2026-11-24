@@ -261,7 +261,7 @@ import { MD } from './markdown.js';
 
   // スクール（NOT DESIGN SCHOOL）の教材へのリンクは、アプリの中の同じチャプターにつなぐ
   // 番号がずれていることがあるので、番号を除いたタイトルで探す
-  const SCHOOL_COURSE = { '6e2e7683-7427-4c4a-912b-a458801965e1': 'basic', '1b34b55b-e627-48be-808c-b3e6d4a9f2bf': 'web' };
+  const SCHOOL_COURSE = { '6e2e7683-7427-4c4a-912b-a458801965e1': 'basic', '1b34b55b-e627-48be-808c-b3e6d4a9f2bf': 'web', '0d71bf9d-2df6-4a5a-81a2-d4de976f40f9': 'ai' };
   const SCHOOL_CH_RE = /^https?:\/\/notdesignschool\.vibely\.site\/courses\/([0-9a-f-]+)\/chapters\/[0-9a-f-]+/i;
   const chKey = t => {
     const n = String(t).normalize('NFKC').replace(/[｜|].*$/, '').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();

@@ -147,4 +147,16 @@ const ILL_WEB = [
   `<rect x="62" y="12" width="36" height="66" rx="5"/><path d="M76 16h8"/><rect class="acc" x="67" y="22" width="26" height="16"/><path d="M67 44h26M67 49h18M67 56h26"/><rect class="acc" x="70" y="62" width="20" height="7" rx="3.5"/><path d="M110 30v30M107 57l3 4 3-4"/>`,
 ];
 Object.assign(ILLUST, Object.fromEntries(ILL_WEB.map((svg, i) => [`web-${i + 1}`, svg])));
+// AI活用講座（4チャプター）
+const ILL_AI = [
+  // 超入門ウェビナー：チャットの吹き出しときらめき
+  `<rect x="40" y="22" width="56" height="30" rx="6"/><path d="M52 52l-4 10 12-10"/><path d="M50 33h36M50 41h24"/><rect class="acc" x="84" y="44" width="40" height="22" rx="6"/><path d="M114 66l4 8-10-8"/><path d="M92 55h24" stroke="#fff"/><path d="M118 20v10M113 25h10"/><path d="M128 34v6M125 37h6"/>`,
+  // AI駆動アプリ開発：ノートPCのコードとアプリ画面
+  `<rect x="34" y="24" width="56" height="36" rx="2"/><path d="M28 64h68"/><path d="M42 34l-4 4 4 4M50 34l4 4-4 4" /><path d="M42 48h22M42 53h14" opacity=".6"/><path d="M96 42h6M99 39l3 3-3 3"/><rect x="108" y="18" width="26" height="48" rx="4"/><rect class="acc" x="112" y="26" width="18" height="12" rx="1"/><path d="M112 44h18M112 50h12"/><circle cx="121" cy="60" r="2"/>`,
+  // Claude Code 相談会：ターミナルと質問の吹き出し
+  `<rect x="36" y="22" width="64" height="44" rx="3"/><path d="M36 30h64"/><path d="M44 40l5 4-5 4"/><path class="acc-s" d="M54 48h14"/><path d="M44 56h30" opacity=".5"/><rect class="acc" x="96" y="16" width="32" height="22" rx="6"/><path d="M104 38l-3 7 9-7"/><path d="M108 23c0-3 6-3 6 0s-3 3-3 6M111 33v.5" stroke="#fff"/>`,
+  // GPT-image-2 勉強会：画像フレームと生成のきらめき
+  `<rect x="38" y="20" width="58" height="46" rx="3"/><circle class="acc" cx="54" cy="34" r="5"/><path d="M38 60l18-16 12 10 10-8 18 14"/><path d="M110 28v14M103 35h14"/><path d="M122 48v8M118 52h8"/><path d="M106 58v6M103 61h6"/>`,
+];
+Object.assign(ILLUST, Object.fromEntries(ILL_AI.map((svg, i) => [`ai-${i + 1}`, svg])));
 export const illustSvg = id => ILLUST[id] ? `<svg viewBox="0 0 160 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ILLUST[id]}</svg>` : '';

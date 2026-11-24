@@ -12,6 +12,12 @@ const BASE_CHAPTER_TITLES = {
     '課題1-1 デザイン言語化ワーク', '課題1-2 デザイン史から“自分の好き”を探る', '課題2-1 フォントを知る、使う',
     '課題2-2 色を知る、使う', '課題2-3 形を知る、使う', '課題2-4 余白を知る、使う', '課題2-5 デイリーグラフィック', '課題 トンマナ分析ワーク',
   ],
+  ai: [
+    '2026.3.12｜まずはここから！Claude超入門ウェビナー',
+    '2026.3.19｜AI駆動アプリ開発 勉強会',
+    '2026.4.16｜Claude Codeなんでも相談会',
+    '2026.6.15｜GPT-image-2勉強会',
+  ],
   web: [
     '1-1 Webデザイナーがグラフィックデザインを学ぶ意味',
     '1-2 グラフィックデザインとWebデザインのレイアウトの違い',
@@ -67,7 +73,7 @@ export const COURSES = [
   { id: 'graphic', title: 'グラフィックデザイン', en: 'Graphic Design', start: '2025/10/05', chapters: genChapters('G', 37) },
   { id: 'figma', title: 'Figma講座', en: 'Figma', dark: true, label: 'Figmaマスター講座', start: '2025/10/02', chapters: genChapters('F', 60) },
   { id: 'studio', title: 'Studio講座', en: 'Studio', dark: true, label: 'Studioマスター講座', start: '2025/10/05', chapters: genChapters('S', 46) },
-  { id: 'ai', title: 'AI活用講座', en: 'AI Workshop', start: '2026/04/13', chapters: genChapters('AI', 4) },
+  { id: 'ai', title: 'AI活用講座', en: 'AI Workshop', start: '2026/04/13', chapters: BASE_CHAPTER_TITLES.ai },
   { id: 'webinar', title: 'ウェビナーアーカイブ', en: 'Webinar Archive', start: '2026/07/29', chapters: genChapters('WB', 57) },
   { id: 'docs', title: 'お役立ち資料', en: 'Resources', start: '2025/12/04', chapters: [
     'タスク・スケジュール管理術 〜虎の巻〜',
