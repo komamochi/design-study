@@ -159,4 +159,16 @@ const ILL_AI = [
   `<rect x="38" y="20" width="58" height="46" rx="3"/><circle class="acc" cx="54" cy="34" r="5"/><path d="M38 60l18-16 12 10 10-8 18 14"/><path d="M110 28v14M103 35h14"/><path d="M122 48v8M118 52h8"/><path d="M106 58v6M103 61h6"/>`,
 ];
 Object.assign(ILLUST, Object.fromEntries(ILL_AI.map((svg, i) => [`ai-${i + 1}`, svg])));
+// お役立ち資料（4チャプター）
+const ILL_DOCS = [
+  // タスク・スケジュール管理術：カレンダーとチェックリスト
+  `<rect x="36" y="22" width="50" height="46" rx="3"/><path d="M36 32h50M46 18v8M76 18v8"/><path d="M44 40h6M56 40h6M68 40h6M44 48h6M56 48h6M44 56h6M56 56h6M68 56h6" opacity=".5"/><rect class="acc" x="67" y="47" width="8" height="6" rx="1"/><rect x="94" y="26" width="32" height="40" rx="3"/><path d="M100 36l3 3 5-5M100 46l3 3 5-5"/><path d="M112 37h9M112 47h9M112 57h9" /><rect x="100" y="54" width="6" height="6" rx="1"/>`,
+  // カイゼンワークショップ：歯車と右上がりの矢印
+  `<circle cx="62" cy="46" r="12"/><circle cx="62" cy="46" r="4"/><path d="M62 30v4M62 58v4M46 46h4M74 46h4M51 35l3 3M70 54l3 3M51 57l3-3M70 38l3-3"/><path d="M90 64l10-12 8 6 16-20"/><path class="acc-s" d="M116 38h8v8"/><path d="M88 70h40" opacity=".5"/>`,
+  // 実績を登録しよう：ポートフォリオの作品グリッド
+  `<rect x="40" y="18" width="80" height="54" rx="3"/><circle cx="50" cy="28" r="4"/><path d="M58 26h20M58 31h12" opacity=".6"/><rect class="acc" x="46" y="38" width="20" height="14"/><rect x="70" y="38" width="20" height="14"/><rect x="94" y="38" width="20" height="14"/><rect x="46" y="56" width="20" height="10"/><rect x="70" y="56" width="20" height="10"/><path d="M104 56v10M99 61h10"/>`,
+  // AIにVibelyをつなごう：ターミナルとプラグでつなぐ
+  `<rect x="30" y="24" width="44" height="38" rx="3"/><path d="M30 32h44"/><path d="M38 42l4 3-4 3"/><path d="M46 50h12" opacity=".6"/><path d="M74 43h10"/><rect class="acc" x="84" y="37" width="10" height="12" rx="2"/><path d="M94 40h5M94 46h5"/><rect x="103" y="34" width="12" height="18" rx="2"/><path d="M115 43h6"/><rect x="121" y="30" width="14" height="26" rx="3"/><circle cx="128" cy="43" r="3"/>`,
+];
+Object.assign(ILLUST, Object.fromEntries(ILL_DOCS.map((svg, i) => [`docs-${i + 1}`, svg])));
 export const illustSvg = id => ILLUST[id] ? `<svg viewBox="0 0 160 90" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ILLUST[id]}</svg>` : '';
