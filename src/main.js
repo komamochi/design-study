@@ -222,6 +222,14 @@ import { MD } from './markdown.js';
       </div>`;
     const close = () => { bg.remove(); md.remove(); };
     bg.onclick = close;
+    // 文字を入れかえても、編集欄のスクロール位置は動かさない
+    const put = (ta, a, b, text, selA, selB) => {
+      const top = ta.scrollTop;
+      ta.focus({ preventScroll: true });
+      ta.setRangeText(text, a, b);
+      ta.setSelectionRange(selA, selB);
+      ta.scrollTop = top;
+    };
     md.querySelector('[data-m="cancel"]').onclick = close;
     // カーソルの位置（の行のあと）に [[チャプターID]] を1行で入れる
     md.querySelector('[data-m="link"]').onchange = e => {
@@ -229,8 +237,7 @@ import { MD } from './markdown.js';
       const ta = md.querySelector('textarea'), v = ta.value;
       let p = ta.selectionEnd; const nl = v.indexOf('\n', p); p = nl < 0 ? v.length : nl;
       const ins = `\n[[${id}]]`;
-      ta.value = v.slice(0, p) + ins + v.slice(p);
-      ta.focus(); ta.setSelectionRange(p + ins.length, p + ins.length);
+      put(ta, p, p, ins, p + ins.length, p + ins.length);
     };
     // 選んだ範囲の前後に ::: を入れて枠にする
     md.querySelector('[data-m="callout"]').onclick = () => {
@@ -241,8 +248,7 @@ import { MD } from './markdown.js';
       const e = v.indexOf('\n', b - 1); b = e < 0 ? v.length : e; // 行のおわりまで
       const head = ':::💡';
       const wrapped = `${head}\n${v.slice(a, b)}\n:::`;
-      ta.value = v.slice(0, a) + wrapped + v.slice(b);
-      ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
+      put(ta, a, b, wrapped, a, a + wrapped.length);
     };
     // 選んだ文字を ``〜`` ではさんで、黒背景・白文字にする（もともとの `〜` はつけ直す）
     md.querySelector('[data-m="dark"]').onclick = () => {
@@ -255,14 +261,17 @@ import { MD } from './markdown.js';
       const sel = v.slice(a, b), lead = sel.match(/^[\s`]*/)[0].replace(/`/g, ''), tail = sel.match(/[\s`]*$/)[0].replace(/`/g, '');
       const text = sel.replace(/^[\s`]+|[\s`]+$/g, '');
       const wrapped = `${lead}\`\`${text}\`\`${tail}`;
-      ta.value = v.slice(0, a) + wrapped + v.slice(b);
-      ta.focus(); ta.setSelectionRange(a, a + wrapped.length);
+      put(ta, a, b, wrapped, a, a + wrapped.length);
     };
     md.querySelector('[data-m="save"]').onclick = async e => {
       const v = md.querySelector('textarea').value.trim();
       e.target.disabled = true; e.target.textContent = '保存中…';
       if (!(await setContent(chid, v))) { e.target.disabled = false; e.target.textContent = '保存する'; toast('保存できませんでした'); return; }
-      close(); render(); toast(v ? '教材を保存しました🐾' : '内容を空にしました');
+      // 保存しても、ページのスクロール位置はそのまま
+      const y = window.scrollY;
+      close(); render(); window.scrollTo(0, y);
+      requestAnimationFrame(() => window.scrollTo(0, y));
+      toast(v ? '教材を保存しました🐾' : '内容を空にしました');
     };
     const del = md.querySelector('[data-m="del"]');
     if (del) del.onclick = async () => { if (!confirm('このチャプターの教材の内容を削除しますか？（元に戻せません）')) return; if (!(await setContent(chid, ''))) { toast('削除できませんでした'); return; } close(); render(); toast('削除しました'); };
