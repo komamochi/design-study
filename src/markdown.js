@@ -116,8 +116,9 @@ export const MD = (() => {
       const newList = () => ({ type, indent, start: num || 1, items: [] });
       const newRoot = () => { list = newList(); if (type === 'ol' && num <= 1) list.start = continueFrom(); stack = [list]; };
       if (!cur) newRoot();
-      else if (cur.items.length && (indent > cur.indent || (type === 'ul' && cur.type === 'ol' && indent === cur.indent))) {
-        // 字下げされた項目、または番号付きの直後の「・」は、その下の入れ子にする
+      else if (cur.items.length && (indent > cur.indent || (type === 'ul' && cur.type === 'ol' && indent === cur.indent)
+        || (type === 'ol' && cur.type === 'ul' && indent === cur.indent && /^\*\*[^*]+\*\*[:：]?$/.test(cur.items[cur.items.length - 1].lines.join(' ').trim())))) {
+        // 字下げされた項目、番号付きの直後の「・」、太字だけの「・」（小見出し）の直後の番号は、その下の入れ子にする
         const child = newList(); cur.items[cur.items.length - 1].subs.push(child); stack.push(child);
       } else if (type !== cur.type) { flushList(); newRoot(); }
       top().items.push({ lines: [text], subs: [] });
