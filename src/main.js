@@ -37,6 +37,7 @@ import { MD } from './markdown.js';
     if (error) { console.error(error); toast('保存できませんでした'); return; }
     lastUpdated = updated_at; dirty = false;
   }
+  let lastSig = '';
   async function load(initial) {
     const [{ data: row, error: e1 }, { data: rows, error: e2 }] = await Promise.all([
       sb.from('study_data').select('data,updated_at').eq('user_id', session.user.id).maybeSingle(),
@@ -48,7 +49,12 @@ import { MD } from './markdown.js';
       else if (initial && !row) { push(); }   // はじめてのときは初期値を保存
     }
     CONTENT = Object.fromEntries((rows || []).map(r => [r.chapter_id, r.body]));
-    if (!document.querySelector('.modal')) render();
+    // 定期的な読み込みでは、中身が変わったときだけ描き直す（読んでいる途中で画面が動かないように）
+    const sig = JSON.stringify([state, CONTENT]);
+    const changed = sig !== lastSig; lastSig = sig;
+    if (!document.querySelector('.modal') && (initial || changed)) {
+      const y = window.scrollY; render(); if (!initial) window.scrollTo(0, y);
+    }
     if (initial) mirrorImages();
   }
 
@@ -98,7 +104,8 @@ import { MD } from './markdown.js';
       }
     } finally { mirroring = false; }
     if (saved || failed) longToast(failed ? `画像${saved}枚を保存しました（${failed}枚は保存できませんでした${mirrorErr ? `：${mirrorErr}` : ''}）` : `画像${saved}枚をアプリに保存しました`);
-    if (saved) { if (!document.querySelector('.modal')) { const y = window.scrollY; render(); window.scrollTo(0, y); } }
+    // 書きかえた教材は次に開いたときから使う（読んでいる画面は描き直さない）
+    lastSig = JSON.stringify([state, CONTENT]);
   }
 
   // 教材：チャプターごとに1行
@@ -397,6 +404,7 @@ import { MD } from './markdown.js';
     document.title = `${$('h1', app)?.firstChild?.textContent.trim() || 'DESIGN STUDY'}｜DESIGN STUDY`;
     bind(p0, p1, p2);
     fillBookmarks();
+    lastSig = JSON.stringify([state, CONTENT]);
   }
 
   // 記事リンクカードに、タイトル・説明・画像を入れる
@@ -411,14 +419,21 @@ import { MD } from './markdown.js';
     document.head.append(sc);
   }
   // PDF：本人だけが見られる期限つきのURLを作って表示する
+  const SIGNED = {};
   async function loadPdfs() {
     const els = [...app.querySelectorAll('[data-pdf], [data-store]')];
     if (!els.length) return;
     const paths = [...new Set(els.map(e => e.dataset.pdf || e.dataset.store))];
-    const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 60 * 60 * 6);
-    const urls = Object.fromEntries((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
+    // 一度作ったURLは覚えておき、描き直しても画像がすぐ出るようにする（同じURLならブラウザのキャッシュが効く）
+    const now = Date.now();
+    const need = paths.filter(p => !(SIGNED[p]?.exp > now));
+    if (need.length) {
+      const { data } = await sb.storage.from(BUCKET).createSignedUrls(need, 60 * 60 * 6);
+      (data || []).filter(d => d.signedUrl).forEach(d => { SIGNED[d.path] = { url: d.signedUrl, exp: now + 5 * 60 * 60 * 1000 }; });
+    }
+    const urls = Object.fromEntries(paths.filter(p => SIGNED[p]).map(p => [p, SIGNED[p].url]));
     if (!Object.keys(urls).length) return;
-    els.filter(e => e.dataset.store).forEach(e => { const u = urls[e.dataset.store]; if (u) e.src = u; });
+    els.filter(e => e.dataset.store).forEach(e => { const u = urls[e.dataset.store]; if (u && e.getAttribute('src') !== u) e.src = u; });
     const pdfs = els.filter(e => e.dataset.pdf && urls[e.dataset.pdf]);
     if (!pdfs.length) return;
     const { mountPdf } = await import('./pdfviewer.js');
